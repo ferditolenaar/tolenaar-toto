@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+  pocketbase:
+    image: mujo/pocketbase:latest
+    container_name: tolenaar-toto-backend
+    restart: unless-stopped
+    ports:
+      - "8090:8080"
+    volumes:
+      - ./pb_data:/pb_data
