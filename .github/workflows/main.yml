@@ -18,6 +18,9 @@ jobs:
           username: ${{ secrets.NAS_USERNAME }}
           password: ${{ secrets.NAS_PASSWORD }}
           script: |
+            cd /volume1/docker/tolenaar-toto
+            ls -a
+
             # Pull the latest code directly on the NAS
             # Use the full path to pull your code
             git pull origin main
