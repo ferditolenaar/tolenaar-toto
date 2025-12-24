@@ -29,4 +29,4 @@ jobs:
           script: |
             cd /volume1/docker/tolenaar-toto/backend
             # Pull new images and restart the container
-            docker compose up -d --remove-orphans
+            /usr/local/bin/docker compose up -d --remove-orphans
