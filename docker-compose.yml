@@ -17,8 +17,8 @@ services:
     container_name: toto-frontend
     restart: unless-stopped
     ports:
-      - "3000:3000"      # Assuming your UI runs on 3000
+      - "3000:80"      # Assuming your UI runs on 3000
     environment:
-      - PB_URL=http://backend:8090 # The UI "talks" to the backend internally
+      - PB_URL=https://pocketbase.millyrazzy.synology.me # The UI "talks" to the backend internally
     depends_on:
       - backend          # Ensures backend starts first
