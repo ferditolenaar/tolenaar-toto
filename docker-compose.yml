@@ -1,3 +1,4 @@
+name: tolenaar-toto-prod
 services:
   # --- BACKEND (PocketBase) ---
   backend:
