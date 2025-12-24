@@ -24,13 +24,14 @@ jobs:
             # Use the full path to pull your code
             /usr/bin/git pull origin main
 
-            /usr/local/bin/docker compose down
-            
+            # 1. Kill the 'ghost' configuration
+            /usr/local/bin/docker compose down 
+
+            # 2. Rebuild fresh with the new 3000:80 mapping
+            /usr/local/bin/docker compose up -d --build --force-recreate
+
             # This variable tells Docker NOT to look at containers from other projects
             export COMPOSE_IGNORE_ORPHANS=True
-            
-            # Build and restart the containers
-            /usr/local/bin/docker compose up -d --build
 
             # This line will tell us if the files actually made it into the container
             echo "--- Checking for files in Nginx ---"
