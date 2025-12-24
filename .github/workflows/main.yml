@@ -18,11 +18,12 @@ jobs:
           username: ${{ secrets.NAS_USERNAME }}
           password: ${{ secrets.NAS_PASSWORD }}
           script: |
+            ls
             cd /volume1/docker/tolenaar-toto
-
+            ls 
             # Pull the latest code directly on the NAS
             # Use the full path to pull your code
-            /usr/bin/git pull origin main
+            git pull origin main
             
             # This variable tells Docker NOT to look at containers from other projects
             export COMPOSE_IGNORE_ORPHANS=True
