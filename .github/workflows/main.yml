@@ -21,7 +21,8 @@ jobs:
             cd /volume1/docker/tolenaar-toto
 
             # Pull the latest code directly on the NAS
-            git pull origin main
+            # Use the full path to pull your code
+            $GIT_BIN pull origin main
             
             # This variable tells Docker NOT to look at containers from other projects
             export COMPOSE_IGNORE_ORPHANS=True
