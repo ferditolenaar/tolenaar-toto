@@ -29,3 +29,9 @@ jobs:
             
             # Build and restart the containers
             /usr/local/bin/docker compose up -d --build
+
+            # This line will tell us if the files actually made it into the container
+            echo "--- Checking for files in Nginx ---"
+            /usr/local/bin/docker exec toto-frontend ls -R /usr/share/nginx/html
+
+            /usr/local/bin/docker ps --format "table {{.Names}}\t{{.Ports}}\t{{.Status}}"
