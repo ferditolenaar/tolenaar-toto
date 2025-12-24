@@ -19,7 +19,12 @@ jobs:
           password: ${{ secrets.NAS_PASSWORD }}
           script: |
             cd /volume1/docker/tolenaar-toto
+
             # Pull the latest code directly on the NAS
             git pull origin main
+            
+            # This variable tells Docker NOT to look at containers from other projects
+            export COMPOSE_IGNORE_ORPHANS=True
+            
             # Build and restart the containers
-            /usr/local/bin/docker compose up -d --build --remove-orphans
+            /usr/local/bin/docker compose up -d --build
