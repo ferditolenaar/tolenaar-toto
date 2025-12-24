@@ -18,14 +18,6 @@ jobs:
           username: ${{ secrets.NAS_USERNAME }}
           password: ${{ secrets.NAS_PASSWORD }}
           source: "backend/docker-compose.yml"
-          target: "/volume1/docker/tolenaar-toto"
-
-      - name: SSH into NAS and Restart
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.NAS_HOST }}
-          username: ${{ secrets.NAS_USERNAME }}
-          password: ${{ secrets.NAS_PASSWORD }}
           script: |
             cd /volume1/docker/tolenaar-toto
             git pull origin main
