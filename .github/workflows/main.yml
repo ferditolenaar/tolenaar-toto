@@ -23,13 +23,14 @@ jobs:
             # Pull the latest code directly on the NAS
             # Use the full path to pull your code
             /usr/bin/git pull origin main
+
+            /usr/local/bin/docker compose down
             
             # This variable tells Docker NOT to look at containers from other projects
             export COMPOSE_IGNORE_ORPHANS=True
             
             # Build and restart the containers
-            # /usr/local/bin/docker compose up -d --build
-            /usr/local/bin/docker compose up -d --force-recreate --build
+            /usr/local/bin/docker compose up -d --build
 
             # This line will tell us if the files actually made it into the container
             echo "--- Checking for files in Nginx ---"
