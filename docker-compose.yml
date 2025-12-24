@@ -1,0 +1,23 @@
+services:
+  # --- BACKEND (PocketBase) ---
+  backend:
+    image: ghcr.io/muchobien/pocketbase:0.35.0
+    container_name: toto-backend
+    restart: unless-stopped
+    ports:
+      - "8090:8090"
+    volumes:
+      - ./backend/pb_data:/pb_data
+    # This allows the backend to stay in its own network
+
+  # --- FRONTEND (Your UI) ---
+  frontend:
+    build: ./frontend    # This tells Docker to build your custom UI
+    container_name: toto-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"      # Assuming your UI runs on 3000
+    environment:
+      - PB_URL=http://backend:8090 # The UI "talks" to the backend internally
+    depends_on:
+      - backend          # Ensures backend starts first

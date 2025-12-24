@@ -1,0 +1,5 @@
+# Ignore the actual database and uploaded files
+backend/pb_data/
+
+# Do NOT ignore migrations (this is your blueprint!)
+!backend/pb_migrations/

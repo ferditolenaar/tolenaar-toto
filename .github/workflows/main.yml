@@ -27,6 +27,8 @@ jobs:
           username: ${{ secrets.NAS_USERNAME }}
           password: ${{ secrets.NAS_PASSWORD }}
           script: |
-            cd /volume1/docker/tolenaar-toto/backend
-            # Pull new images and restart the container
-            /usr/local/bin/docker compose up -d --remove-orphans
+            cd /volume1/docker/tolenaar-toto
+            git pull origin main
+            # --build forces a rebuild of the frontend image
+            # --remove-orphans cleans up old service names
+            /usr/local/bin/docker compose up -d --build --remove-orphans
