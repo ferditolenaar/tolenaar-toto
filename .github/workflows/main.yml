@@ -12,20 +12,16 @@ jobs:
       - name: Fix Git Permissions
         run: git config --global --add safe.directory /volume1/docker/tolenaar-toto
 
-      - name: Deploy
+      - name: Force Update NAS Files
         run: |
           cd /volume1/docker/tolenaar-toto
+          # Fetch the latest code without needing a 'checkout' step
+          git fetch origin main
+          # This wipes any local changes and makes the folder a perfect mirror of GitHub
+          git reset --hard origin/main 
 
-          git pull origin main
-
-          # 1. Stop and remove the old containers and volumes
-          docker compose down --volumes --remove-orphans
-
-          # 2. Delete the old image so the runner is forced to build it fresh
-          docker image rm tolenaar-toto-prod-frontend:latest --force || true
-
-          # 3. Build from scratch without using any cache
-          docker compose build --no-cache
-
-          # 4. Start the new container
-          docker compose up -d --force-recreate
+      - name: Rebuild and Recreate
+        run: |
+          cd /volume1/docker/tolenaar-toto
+          # Build fresh and force Synology to replace the running container
+          docker compose up -d --build --force-recreate
