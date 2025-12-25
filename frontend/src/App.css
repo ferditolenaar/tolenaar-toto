@@ -1,4 +1,4 @@
-/* --- GLOBAL RESET & BASE --- */
+/* --- GLOBAL RESET --- */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { 
   font-family: 'Inter', sans-serif; 
@@ -15,14 +15,16 @@ body {
   width: 100%;
 }
 
+/* This is the most important part for fixing your screenshot */
 .content-area {
   flex: 1;
   display: flex;
   flex-direction: column;
   width: 100%;
+  align-items: center; /* Forces children to the center horizontally */
 }
 
-/* This MUST be here and have margin: 0 auto */
+/* The 1280px Spine */
 .container-centered {
   width: 100%;
   max-width: 1280px; 
@@ -30,7 +32,7 @@ body {
   padding: 0 2rem;
 }
 
-/* --- NAVBAR (Always Centered) --- */
+/* --- NAVBAR --- */
 .navbar {
   width: 100%;
   background: #1a1a1a;
@@ -44,5 +46,9 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 100%; /* Spans the 1280px of its parent */
+  width: 100%;
 }
+
+.nav-brand { font-size: 1.5rem; font-weight: 700; }
+.nav-links { display: flex; gap: 1.5rem; align-items: center; }
+.nav-links a { color: #adb5bd; text-decoration: none; font-weight: 500; }

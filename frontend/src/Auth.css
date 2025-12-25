@@ -1,8 +1,9 @@
 .auth-page-wrapper {
-  flex: 1;
   display: flex;
-  justify-content: center; /* Horizontally center the card */
-  align-items: center;     /* Vertically center the card */
+  flex-direction: column;
+  justify-content: center; /* Centers vertically */
+  align-items: center;     /* Centers horizontally */
+  flex: 1;                 /* Essential: Tells the wrapper to fill the whole space */
   width: 100%;
 }
 
@@ -14,19 +15,20 @@
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
   border: 1px solid #eee;
+  /* Resetting margin to ensure it doesn't get pushed by previous styles */
+  margin: 0 auto; 
 }
 
 .auth-card h2 {
   margin-bottom: 2rem;
   text-align: center;
-  color: var(--text-main);
+  color: #1a1a1a; /* Fixes the white-on-white text */
   font-size: 1.5rem;
   font-weight: 800;
 }
 
-/* Shared Auth Form Elements */
+/* Standard Auth Form Elements */
 .form-group { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.5rem; }
-.form-group label { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); }
-.form-group input { padding: 12px; border: 1.5px solid #ddd; border-radius: 8px; }
-.submit-btn { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
-.auth-footer { margin-top: 1.5rem; text-align: center; font-size: 0.875rem; color: var(--text-muted); }
+.form-group label { font-size: 0.85rem; font-weight: 600; color: #666; text-align: left; }
+.form-group input { padding: 12px; border: 1.5px solid #ddd; border-radius: 8px; font-size: 1rem; }
+.submit-btn { width: 100%; padding: 14px; background: #007bff; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
