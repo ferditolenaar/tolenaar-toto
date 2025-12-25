@@ -1,4 +1,4 @@
-/* 1. Reset & Base */
+/* --- 1. GLOBAL RESET --- */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -7,45 +7,54 @@
 }
 
 body {
-  background-color: #f8f9fa; /* Light grey background for contrast */
+  background-color: #f8f9fa;
   color: #333;
+  min-height: 100vh;
 }
 
-/* 2. Layout Structure */
+/* --- 2. LAYOUT WRAPPERS --- */
 .app-container {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
 }
 
-/* 3. The Navbar (The Top Row) */
-.navbar {
+/* This is your "Spine" - everything inside this will align perfectly */
+.container-centered {
+  width: 100%;
+  max-width: 1280px; 
+  margin: 0 auto;    /* Centers the container */
+  padding: 0 2rem;   /* Padding for mobile */
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 0 2rem;
-  height: 64px;
-  background: #1a1a1a; /* Professional dark theme */
+  justify-content: space-between;
+}
+
+/* --- 3. NAVBAR --- */
+.navbar {
+  width: 100%;
+  background: #1a1a1a;
   color: white;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  height: 64px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .nav-brand {
   font-size: 1.25rem;
   font-weight: 700;
-  letter-spacing: -0.5px;
 }
 
 .nav-links {
   display: flex;
   gap: 1.5rem;
-  align-items: center;
 }
 
 .nav-links a {
-  color: #ccc;
+  color: #adb5bd;
   text-decoration: none;
-  font-size: 0.95rem;
+  font-weight: 500;
   transition: color 0.2s;
 }
 
@@ -53,15 +62,16 @@ body {
   color: white;
 }
 
-/* 4. The Content Area */
+/* --- 4. MAIN CONTENT AREA --- */
 .content-area {
-  flex: 1;
+  flex: 1; /* Fills remaining height */
   display: flex;
-  justify-content: center; /* Centers form horizontally */
-  padding: 4rem 1rem;
+  justify-content: center; /* Centers cards horizontally */
+  align-items: center;     /* Centers cards vertically */
+  padding: 2rem 0;
 }
 
-/* 5. Clean Form Cards */
+/* --- 5. AUTH CARDS (Login & Register) --- */
 .auth-card {
   background: white;
   width: 100%;
@@ -69,71 +79,49 @@ body {
   padding: 2.5rem;
   border-radius: 12px;
   box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-  border: 1px solid #eaeaea;
+  border: 1px solid #eee;
 }
 
 .auth-card h2 {
   margin-bottom: 2rem;
-  font-size: 1.75rem;
-  font-weight: 700;
   text-align: center;
+  font-weight: 800;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem; /* Space between label and input */
+  gap: 0.5rem;
   margin-bottom: 1.25rem;
 }
 
 .form-group label {
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   font-weight: 600;
-  color: #555;
+  color: #666;
 }
 
 .form-group input {
-  padding: 0.75rem 1rem;
-  font-size: 1rem;
+  padding: 0.8rem;
   border: 1px solid #ddd;
-  border-radius: 6px;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  border-radius: 8px;
+  font-size: 1rem;
 }
 
-.form-group input:focus {
-  outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
-}
-
-/* 6. Buttons */
 .submit-btn {
   width: 100%;
-  padding: 0.875rem;
+  padding: 1rem;
   background: #007bff;
   color: white;
   border: none;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: 600;
+  border-radius: 8px;
+  font-weight: 700;
   cursor: pointer;
   margin-top: 1rem;
-  transition: background 0.2s;
-}
-
-.submit-btn:hover {
-  background: #0056b3;
 }
 
 .auth-footer {
   margin-top: 1.5rem;
   text-align: center;
   font-size: 0.875rem;
-  color: #666;
-}
-
-.auth-footer a {
-  color: #007bff;
-  text-decoration: none;
-  font-weight: 600;
 }
