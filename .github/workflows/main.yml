@@ -6,35 +6,12 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    # This tells GitHub to use your NAS container instead of a GitHub-owned server
+    runs-on: self-hosted 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: SSH and Deploy to Synology
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.NAS_HOST }}
-          username: ${{ secrets.NAS_USERNAME }}
-          password: ${{ secrets.NAS_PASSWORD }}
-          script: |
-            cd /volume1/docker/tolenaar-toto
-
-            # Pull the latest code directly on the NAS
-            # Use the full path to pull your code
-            /usr/bin/git pull origin main
-
-            # 1. Kill the 'ghost' configuration
-            /usr/local/bin/docker compose down 
-
-            # 2. Rebuild fresh with the new 3000:80 mapping
-            /usr/local/bin/docker compose up -d --build --force-recreate
-
-            # This variable tells Docker NOT to look at containers from other projects
-            export COMPOSE_IGNORE_ORPHANS=True
-
-            # This line will tell us if the files actually made it into the container
-            echo "--- Checking for files in Nginx ---"
-            /usr/local/bin/docker exec toto-frontend ls -R /usr/share/nginx/html
-
-            /usr/local/bin/docker ps --format "table {{.Names}}\t{{.Ports}}\t{{.Status}}"
+      - name: Deploy to Local Docker
+        run: |
+          cd /volume1/docker/tolenaar-toto
+          git pull origin main
+          docker compose down
+          docker compose up -d --build
