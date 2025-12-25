@@ -7,58 +7,56 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({ email: '', password: '' });
 
-async function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
     try {
-      // Fixed the double 'formData' typo here
       await pb.collection('users').authWithPassword(formData.email, formData.password);
-      
       navigate('/'); 
     } catch (err) {
-      alert("Error: " + err.message);
+      alert("Login failed: " + err.message);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
-  // async function handleGoogleLogin() {
-  //   try {
-  //     await pb.collection('users').authWithOAuth2({ provider: 'google' });
-  //     navigate('/');
-  //   } catch (err) {
-  //     console.error(err);
-  //   }
-  // }
-
   return (
-    <div className="auth-container">
-      <h1>Login</h1>
-      <form onSubmit={handleSubmit}>
-        <input 
-          type="email" 
-          placeholder="Email" 
-          onChange={(e) => setFormData({...formData, email: e.target.value})}
-          required 
-        />
-        <input 
-          type="password" 
-          placeholder="Password" 
-          onChange={(e) => setFormData({...formData, password: e.target.value})}
-          required 
-        />
-        <button type="submit" disabled={loading}>
-          {loading ? "Loading..." : "Login"}
-        </button>
-      </form>
+    <div className="auth-page">
+      <div className="auth-card">
+        <h2>Login</h2>
+        <form onSubmit={handleSubmit}>
+          
+          <div className="form-group">
+            <label htmlFor="email">Email address</label>
+            <input 
+              id="email" 
+              type="email" 
+              value={formData.email}
+              onChange={e => setFormData({...formData, email: e.target.value})} 
+              required 
+            />
+          </div>
 
-      {/* <hr />
-      <button onClick={handleGoogleLogin} className="google-btn">
-        Continue with Google
-      </button> */}
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
+            <input 
+              id="password" 
+              type="password" 
+              value={formData.password}
+              onChange={e => setFormData({...formData, password: e.target.value})} 
+              required 
+            />
+          </div>
 
-      <p>
-        Need an account? <Link to="/register">Register here</Link>
-      </p>
+          <button type="submit" className="submit-btn" disabled={loading}>
+            {loading ? "Logging in..." : "Login"}
+          </button>
+        </form>
+
+        <p className="auth-footer">
+          Don't have an account? <Link to="/register">Register here</Link>
+        </p>
+      </div>
     </div>
   );
 }
