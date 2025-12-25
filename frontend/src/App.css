@@ -6,31 +6,21 @@
   font-family: 'Inter', -apple-system, sans-serif;
 }
 
-body {
+body, html {
+  width: 100%;
+  height: 100%;
   background-color: #f8f9fa;
-  color: #333;
-  min-height: 100vh;
 }
 
-/* --- 2. LAYOUT WRAPPERS --- */
+/* --- 2. FULL SCREEN WRAPPERS --- */
 .app-container {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  width: 100vw; /* Forces the app to use the full screen width */
 }
 
-/* This is your "Spine" - everything inside this will align perfectly */
-.container-centered {
-  width: 100%;
-  max-width: 1280px; 
-  margin: 0 auto;    /* Centers the container */
-  padding: 0 2rem;   /* Padding for mobile */
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-/* --- 3. NAVBAR --- */
+/* --- 3. NAVBAR (Center Aligned to 1280px) --- */
 .navbar {
   width: 100%;
   background: #1a1a1a;
@@ -39,6 +29,16 @@ body {
   display: flex;
   align-items: center;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.container-centered {
+  width: 100%;
+  max-width: 1280px; /* Industry standard */
+  margin: 0 auto;    /* Centers the spine */
+  padding: 0 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .nav-brand {
@@ -62,20 +62,29 @@ body {
   color: white;
 }
 
-/* --- 4. MAIN CONTENT AREA --- */
+/* --- 4. THE CENTERED HERO AREA --- */
 .content-area {
-  flex: 1; /* Fills remaining height */
+  flex: 1;
   display: flex;
-  justify-content: center; /* Centers cards horizontally */
-  align-items: center;     /* Centers cards vertically */
-  padding: 2rem 0;
+  width: 100%;
+  /* This ensures the content doesn't just sit on the left */
+  justify-content: center; 
+  align-items: center;
+  padding: 40px 20px;
+}
+
+.centered-hero {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  max-width: 1280px; /* Aligns with the navbar spine */
 }
 
 /* --- 5. AUTH CARDS (Login & Register) --- */
 .auth-card {
   background: white;
   width: 100%;
-  max-width: 420px;
+  max-width: 420px; /* Industry standard for single-column auth */
   padding: 2.5rem;
   border-radius: 12px;
   box-shadow: 0 10px 25px rgba(0,0,0,0.05);
@@ -85,43 +94,52 @@ body {
 .auth-card h2 {
   margin-bottom: 2rem;
   text-align: center;
+  font-size: 2rem;
   font-weight: 800;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 1.25rem;
+  gap: 0.6rem;
+  margin-bottom: 1.5rem;
 }
 
 .form-group label {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  color: #666;
+  color: #555;
 }
 
 .form-group input {
-  padding: 0.8rem;
-  border: 1px solid #ddd;
+  padding: 12px;
+  border: 1.5px solid #ddd;
   border-radius: 8px;
   font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #007bff;
 }
 
 .submit-btn {
   width: 100%;
-  padding: 1rem;
+  padding: 14px;
   background: #007bff;
   color: white;
   border: none;
   border-radius: 8px;
+  font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
-  margin-top: 1rem;
+  margin-top: 10px;
 }
 
 .auth-footer {
-  margin-top: 1.5rem;
+  margin-top: 20px;
   text-align: center;
-  font-size: 0.875rem;
+  color: #666;
+  font-size: 0.9rem;
 }

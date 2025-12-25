@@ -11,8 +11,9 @@ export default function Layout() {
 
   return (
     <div className="app-container">
+      {/* 1. Full-width Black Bar */}
       <nav className="navbar">
-        {/* The "Inner" container keeps navigation at 1280px */}
+        {/* 2. Centered Spine for Nav Contents */}
         <div className="container-centered">
           <div className="nav-brand">Tolenaar Toto</div>
           <div className="nav-links">
@@ -26,10 +27,12 @@ export default function Layout() {
         </div>
       </nav>
 
+      {/* 3. Full-width Background for Content */}
       <main className="content-area">
-        {/* We don't use container-centered here because we want the 
-            login card to be dead-center of the WHOLE screen */}
-        <Outlet />
+        {/* 4. The magic wrapper that centers the Login/Register card */}
+        <div className="centered-hero">
+          <Outlet />
+        </div>
       </main>
     </div>
   );
