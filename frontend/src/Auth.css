@@ -1,19 +1,19 @@
 .auth-page-wrapper {
   flex: 1;
   display: flex;
-  justify-content: center; /* Horizontally center */
-  align-items: center;     /* Vertically center */
-  padding: 2rem;
+  justify-content: center; /* Horizontally center the card */
+  align-items: center;     /* Vertically center the card */
+  width: 100%;
 }
 
 .auth-card {
-  background: var(--bg-card);
+  background: white;
   width: 100%;
-  max-width: 420px; /* Locked size for auth */
+  max-width: 420px;
   padding: 2.5rem;
   border-radius: 12px;
-  box-shadow: var(--shadow);
-  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  border: 1px solid #eee;
 }
 
 .auth-card h2 {

@@ -1,49 +1,39 @@
-/* --- GLOBAL TOKENS & RESET --- */
-:root {
-  --primary: #007bff;
-  --bg-body: #f8f9fa;
-  --bg-card: #ffffff;
-  --text-main: #1a1a1a;
-  --text-muted: #666666;
-  --nav-bg: #1a1a1a;
-  --border-color: #eeeeee;
-  --max-width: 1280px;
-  --shadow: 0 4px 12px rgba(0,0,0,0.05);
-}
-
+/* --- GLOBAL RESET & BASE --- */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { 
-  font-family: 'Inter', -apple-system, sans-serif; 
-  background-color: var(--bg-body); 
-  color: var(--text-main);
+  font-family: 'Inter', sans-serif; 
+  background-color: #f8f9fa; 
   min-height: 100vh;
+  width: 100%;
 }
 
+/* --- THE CENTERING ENGINE --- */
 .app-container {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  width: 100%; /* Ensure it spans the full screen */
+  width: 100%;
 }
 
 .content-area {
   flex: 1;
   display: flex;
   flex-direction: column;
-  width: 100%; /* This must be 100% so the child can center */
+  width: 100%;
 }
 
+/* This MUST be here and have margin: 0 auto */
 .container-centered {
   width: 100%;
   max-width: 1280px; 
-  margin: 0 auto !important; /* This is the specific line that prevents hugging the left */
+  margin: 0 auto !important; 
   padding: 0 2rem;
 }
 
-/* --- SHARED NAVBAR --- */
+/* --- NAVBAR (Always Centered) --- */
 .navbar {
   width: 100%;
-  background: var(--nav-bg);
+  background: #1a1a1a;
   color: white;
   height: 64px;
   display: flex;
@@ -54,10 +44,5 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 100%;
+  width: 100%; /* Spans the 1280px of its parent */
 }
-
-.nav-brand { font-size: 1.5rem; font-weight: 700; }
-.nav-links { display: flex; gap: 1.5rem; align-items: center; }
-.nav-links a { color: #adb5bd; text-decoration: none; font-weight: 500; }
-.nav-links a:hover { color: white; }
