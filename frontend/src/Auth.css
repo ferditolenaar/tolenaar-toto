@@ -1,9 +1,8 @@
 .auth-page-wrapper {
+  flex: 1; /* Fills the vertical space */
   display: flex;
-  flex-direction: column;
-  justify-content: center; /* Centers vertically */
-  align-items: center;     /* Centers horizontally */
-  flex: 1;                 /* Essential: Tells the wrapper to fill the whole space */
+  justify-content: center; /* Centers horizontally */
+  align-items: center;     /* Centers vertically */
   width: 100%;
 }
 
@@ -15,20 +14,20 @@
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
   border: 1px solid #eee;
-  /* Resetting margin to ensure it doesn't get pushed by previous styles */
-  margin: 0 auto; 
+  margin: 0 auto; /* Safety centering */
 }
 
 .auth-card h2 {
   margin-bottom: 2rem;
   text-align: center;
-  color: #1a1a1a; /* Fixes the white-on-white text */
+  color: #1a1a1a; /* Fixes white-on-white */
   font-size: 1.5rem;
   font-weight: 800;
 }
 
-/* Standard Auth Form Elements */
+/* Card form elements */
 .form-group { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.5rem; }
 .form-group label { font-size: 0.85rem; font-weight: 600; color: #666; text-align: left; }
 .form-group input { padding: 12px; border: 1.5px solid #ddd; border-radius: 8px; font-size: 1rem; }
 .submit-btn { width: 100%; padding: 14px; background: #007bff; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
+.auth-footer { margin-top: 1.5rem; text-align: center; color: #666; }

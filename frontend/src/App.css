@@ -1,13 +1,13 @@
 /* --- GLOBAL RESET --- */
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { 
-  font-family: 'Inter', sans-serif; 
-  background-color: #f8f9fa; 
-  min-height: 100vh;
+body, html { 
   width: 100%;
+  height: 100%;
+  background-color: #f8f9fa;
+  font-family: 'Inter', sans-serif;
 }
 
-/* --- THE CENTERING ENGINE --- */
+/* THE SHELL */
 .app-container {
   display: flex;
   flex-direction: column;
@@ -15,24 +15,22 @@ body {
   width: 100%;
 }
 
-/* This is the most important part for fixing your screenshot */
 .content-area {
   flex: 1;
   display: flex;
   flex-direction: column;
-  width: 100%;
-  align-items: center; /* Forces children to the center horizontally */
+  width: 100%; /* Important: spans full screen */
 }
 
-/* The 1280px Spine */
+/* THE SPINE (1280px) */
 .container-centered {
   width: 100%;
   max-width: 1280px; 
-  margin: 0 auto !important; 
+  margin: 0 auto !important; /* Forces centering */
   padding: 0 2rem;
 }
 
-/* --- NAVBAR --- */
+/* NAVBAR */
 .navbar {
   width: 100%;
   background: #1a1a1a;
