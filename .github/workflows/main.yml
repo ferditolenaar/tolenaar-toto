@@ -18,4 +18,7 @@ jobs:
       - name: Deploy
         run: |
           cd /volume1/docker/tolenaar-toto
-          docker compose up -d --build
+          
+          # This forces Docker to rebuild every single step from scratch
+          docker compose build --no-cache
+          docker compose up -d
