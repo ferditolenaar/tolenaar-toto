@@ -19,6 +19,14 @@ jobs:
         run: |
           cd /volume1/docker/tolenaar-toto
 
-          # This forces Docker to rebuild every single step from scratch
-          docker compose build --no-cache 
+          # 1. Stop and remove the old containers and volumes
+          docker compose down --volumes --remove-orphans
+
+          # 2. Delete the old image so the runner is forced to build it fresh
+          docker image rm tolenaar-toto-prod-frontend:latest --force || true
+
+          # 3. Build from scratch without using any cache
+          docker compose build --no-cache
+
+          # 4. Start the new container
           docker compose up -d --force-recreate
