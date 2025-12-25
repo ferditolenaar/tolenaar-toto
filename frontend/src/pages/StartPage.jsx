@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import pb from '../lib/pocketbase';
 import { Link } from 'react-router-dom';
+import '../Features.css';
 
 export default function StartPage() {
   // 1. Create a state to hold the user

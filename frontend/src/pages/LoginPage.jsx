@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import pb from '../lib/pocketbase';
+import '../Auth.css';
 
 export default function LoginPage() {
   const navigate = useNavigate();
