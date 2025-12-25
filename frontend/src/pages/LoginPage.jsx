@@ -7,14 +7,13 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({ email: '', password: '' });
 
-  async function handleSubmit(e) {
+async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
     try {
-      // 1. Authenticate with PocketBase
-      await pb.collection('users').authWithPassword(formData.email, formData.formData.password);
+      // Fixed the double 'formData' typo here
+      await pb.collection('users').authWithPassword(formData.email, formData.password);
       
-      // 2. If successful, send them to the home/dashboard
       navigate('/'); 
     } catch (err) {
       alert("Error: " + err.message);
