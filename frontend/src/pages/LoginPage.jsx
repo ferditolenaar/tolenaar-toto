@@ -21,7 +21,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="auth-wrapper">
+    <div className="auth-page-wrapper">
       <div className="auth-card">
         <h2>Login</h2>
         <form onSubmit={handleSubmit}>

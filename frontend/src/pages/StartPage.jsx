@@ -12,7 +12,7 @@ export default function StartPage() {
       </header>
 
       {/* Content Area using the full 1280px width */}
-      <div className="card-grid">
+      <div className="feature-grid">
         <div className="feature-card">
           <h3>Upcoming Matches</h3>
           <p>View and predict the latest fixtures.</p>
