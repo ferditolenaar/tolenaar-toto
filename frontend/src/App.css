@@ -23,13 +23,20 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  width: 100%; /* Ensure it spans the full screen */
 }
 
-/* The standard 1280px spine used by both Nav and Feature pages */
+.content-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%; /* This must be 100% so the child can center */
+}
+
 .container-centered {
   width: 100%;
-  max-width: var(--max-width);
-  margin: 0 auto;
+  max-width: 1280px; 
+  margin: 0 auto !important; /* This is the specific line that prevents hugging the left */
   padding: 0 2rem;
 }
 
