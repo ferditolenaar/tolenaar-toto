@@ -1,44 +1,40 @@
-import { Link, useNavigate } from 'react-router-dom';
 import pb from '../lib/pocketbase';
+import { Link } from 'react-router-dom';
 
 export default function StartPage() {
-  const navigate = useNavigate();
-  const user = pb.authStore.model; // Gets the logged-in user's data
-
-  const handleLogout = () => {
-    pb.authStore.clear(); // Wipes the token from local storage
-    navigate('/login');
-  };
+  const user = pb.authStore.model;
 
   return (
-    <div style={{ padding: '2rem', textAlign: 'center' }}>
-      <h1>Welcome to Tolenaar Toto</h1>
-      
-      {pb.authStore.isValid ? (
-        // What logged-in users see
-        <div className="dashboard-hero">
-          <p>G'day, <strong>{user?.username || user?.email}</strong>!</p>
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-            <Link to="/predictions">
-              <button>Make Predictions</button>
-            </Link>
-            <button onClick={handleLogout} style={{ background: '#ff4444' }}>
-              Logout
+    <div className="container-centered page-container">
+      {/* Consistent Page Header */}
+      <header className="page-header">
+        <h1>Welcome, {user?.username || 'Guest'}</h1>
+      </header>
+
+      {/* Content Area using the full 1280px width */}
+      <div className="card-grid">
+        <div className="feature-card">
+          <h3>Upcoming Matches</h3>
+          <p>View and predict the latest fixtures.</p>
+          <Link to="/predictions" className="nav-links">
+            <button style={{color: 'var(--primary)', marginTop: '1rem', fontWeight: 'bold'}}>
+              Go to Predictions →
             </button>
-          </div>
-        </div>
-      ) : (
-        // What guests see
-        <div className="guest-hero">
-          <p>Please log in to start your footy tipping.</p>
-          <Link to="/login">
-            <button>Login</button>
           </Link>
-          <p>
-            Don't have an account? <Link to="/register">Register here</Link>
-          </p>
         </div>
-      )}
+
+        <div className="feature-card">
+          <h3>Leaderboard</h3>
+          <p>See how you rank against the other legends.</p>
+        </div>
+
+        {user?.role === 'admin' && (
+          <div className="feature-card" style={{borderLeft: '4px solid gold'}}>
+            <h3>Admin Tools</h3>
+            <p>Manage users and match results.</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -3,7 +3,6 @@ import pb from '../lib/pocketbase';
 
 export default function Layout() {
   const navigate = useNavigate();
-
   const handleLogout = () => {
     pb.authStore.clear();
     navigate('/login');
@@ -11,15 +10,13 @@ export default function Layout() {
 
   return (
     <div className="app-container">
-      {/* 1. Full-width Black Bar */}
       <nav className="navbar">
-        {/* 2. Centered Spine for Nav Contents */}
-        <div className="container-centered">
+        <div className="container-centered nav-inner">
           <div className="nav-brand">Tolenaar Toto</div>
           <div className="nav-links">
             <Link to="/">Home</Link>
             {pb.authStore.isValid ? (
-              <button onClick={handleLogout} className="logout-btn">Logout</button>
+              <button onClick={handleLogout} className="btn-link">Logout</button>
             ) : (
               <Link to="/login">Login</Link>
             )}
@@ -27,12 +24,9 @@ export default function Layout() {
         </div>
       </nav>
 
-      {/* 3. Full-width Background for Content */}
       <main className="content-area">
-        {/* 4. The magic wrapper that centers the Login/Register card */}
-        <div className="centered-hero">
-          <Outlet />
-        </div>
+        {/* Pages will render here. Auth pages will use a wrapper to center themselves. */}
+        <Outlet />
       </main>
     </div>
   );
