@@ -12,12 +12,11 @@ jobs:
       - name: Fix Git Permissions
         run: git config --global --add safe.directory /volume1/docker/tolenaar-toto
 
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
       - name: Deploy
         run: |
           cd /volume1/docker/tolenaar-toto
+
+          git pull origin main
 
           # 1. Stop and remove the old containers and volumes
           docker compose down --volumes --remove-orphans
