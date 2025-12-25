@@ -9,9 +9,13 @@ jobs:
     # This tells GitHub to use your NAS container instead of a GitHub-owned server
     runs-on: self-hosted 
     steps:
-      - name: Deploy to Local Docker
+      - name: Fix Git Permissions
+        run: git config --global --add safe.directory /volume1/docker/tolenaar-toto
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy
         run: |
           cd /volume1/docker/tolenaar-toto
-          git pull origin main
-          docker compose down
           docker compose up -d --build
