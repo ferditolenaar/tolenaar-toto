@@ -22,14 +22,14 @@ export default function LoginPage() {
     setLoading(false);
   }
 
-  async function handleGoogleLogin() {
-    try {
-      await pb.collection('users').authWithOAuth2({ provider: 'google' });
-      navigate('/');
-    } catch (err) {
-      console.error(err);
-    }
-  }
+  // async function handleGoogleLogin() {
+  //   try {
+  //     await pb.collection('users').authWithOAuth2({ provider: 'google' });
+  //     navigate('/');
+  //   } catch (err) {
+  //     console.error(err);
+  //   }
+  // }
 
   return (
     <div className="auth-container">
@@ -52,10 +52,10 @@ export default function LoginPage() {
         </button>
       </form>
 
-      <hr />
+      {/* <hr />
       <button onClick={handleGoogleLogin} className="google-btn">
         Continue with Google
-      </button>
+      </button> */}
 
       <p>
         Need an account? <Link to="/register">Register here</Link>

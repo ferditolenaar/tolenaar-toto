@@ -4,35 +4,91 @@ import pb from '../lib/pocketbase';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  
+  // We keep all our form data in one object for cleanliness
   const [data, setData] = useState({ 
-    username: '', email: '', password: '', passwordConfirm: '' 
+    username: '', 
+    email: '', 
+    password: '', 
+    passwordConfirm: '' 
   });
 
   async function handleRegister(e) {
     e.preventDefault();
+    setLoading(true);
+
     try {
-      // 1. Create the user record
+      // 1. Create the user record in your PocketBase 'users' collection
       await pb.collection('users').create(data);
       
-      // 2. Immediately log them in so they don't have to type it again
+      // 2. Automatically log them in after registration
       await pb.collection('users').authWithPassword(data.email, data.password);
       
+      // 3. Send them to the home page
       navigate('/');
     } catch (err) {
-      alert(err.message);
+      alert("Registration failed: " + err.message);
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
-    <div className="auth-container">
-      <h1>Create Account</h1>
-      <form onSubmit={handleRegister}>
-        <input type="text" placeholder="Username" onChange={e => setData({...data, username: e.target.value})} />
-        <input type="email" placeholder="Email" onChange={e => setData({...data, email: e.target.value})} />
-        <input type="password" placeholder="Password" onChange={e => setData({...data, password: e.target.value})} />
-        <input type="password" placeholder="Confirm Password" onChange={e => setData({...data, passwordConfirm: e.target.value})} />
-        <button type="submit">Sign Up</button>
-      </form>
+    <div className="auth-page">
+      <div className="auth-card">
+        <h2>Create Account</h2>
+        <form onSubmit={handleRegister}>
+          
+          <div className="form-group">
+            <label htmlFor="username">Username</label>
+            <input 
+              id="username" 
+              type="text" 
+              value={data.username}
+              onChange={e => setData({...data, username: e.target.value})} 
+              required 
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="email">Email address</label>
+            <input 
+              id="email" 
+              type="email" 
+              value={data.email}
+              onChange={e => setData({...data, email: e.target.value})} 
+              required 
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
+            <input 
+              id="password" 
+              type="password" 
+              value={data.password}
+              onChange={e => setData({...data, password: e.target.value})} 
+              required 
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="passwordConfirm">Confirm Password</label>
+            <input 
+              id="passwordConfirm" 
+              type="password" 
+              value={data.passwordConfirm}
+              onChange={e => setData({...data, passwordConfirm: e.target.value})} 
+              required 
+            />
+          </div>
+
+          <button type="submit" className="submit-btn" disabled={loading}>
+            {loading ? "Creating Account..." : "Sign Up"}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
