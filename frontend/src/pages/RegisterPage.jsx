@@ -35,6 +35,7 @@ export default function RegisterPage() {
   }
 
   return (
+    <div className="auth-page-wrapper">
       <div className="auth-card">
         <h2>Create Account</h2>
         <form onSubmit={handleRegister}>
@@ -91,5 +92,6 @@ export default function RegisterPage() {
           Already have an account? <Link to="/login">Login here</Link>
         </p>
       </div>
+    </div>
   );
 }

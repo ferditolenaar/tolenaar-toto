@@ -2,7 +2,17 @@ import pb from '../lib/pocketbase';
 import { Link } from 'react-router-dom';
 
 export default function StartPage() {
-  const user = pb.authStore.model;
+  // 1. Create a state to hold the user
+  const [user, setUser] = useState(pb.authStore.model);
+
+  useEffect(() => {
+    // 2. Subscribe to auth changes so the UI stays in sync
+    const unsubscribe = pb.authStore.onChange((token, model) => {
+      setUser(model);
+    });
+
+    return () => unsubscribe(); // Cleanup on unmount
+  }, []);
 
   return (
     <div className="container-centered page-container">
