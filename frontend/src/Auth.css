@@ -1,8 +1,8 @@
 .auth-page-wrapper {
-  flex: 1; /* Fills the vertical space */
+  flex: 1; /* Fills the whole space between navbar and bottom */
   display: flex;
-  justify-content: center; /* Centers horizontally */
-  align-items: center;     /* Centers vertically */
+  justify-content: center; /* Center horizontally */
+  align-items: center;     /* Center vertically */
   width: 100%;
 }
 
@@ -14,18 +14,17 @@
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
   border: 1px solid #eee;
-  margin: 0 auto; /* Safety centering */
 }
 
 .auth-card h2 {
   margin-bottom: 2rem;
   text-align: center;
-  color: #1a1a1a; /* Fixes white-on-white */
+  color: #1a1a1a; /* Fixes white-on-white text */
   font-size: 1.5rem;
   font-weight: 800;
 }
 
-/* Card form elements */
+/* Standard Auth Form Elements */
 .form-group { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.5rem; }
 .form-group label { font-size: 0.85rem; font-weight: 600; color: #666; text-align: left; }
 .form-group input { padding: 12px; border: 1.5px solid #ddd; border-radius: 8px; font-size: 1rem; }
