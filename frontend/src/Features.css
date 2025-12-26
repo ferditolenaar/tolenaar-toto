@@ -1,6 +1,8 @@
 .page-container {
   padding: 3rem 0;
   width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .page-header {
@@ -9,16 +11,16 @@
   padding-bottom: 1.5rem;
 }
 
-/* FIX: Ensure Header is visible */
+/* Visibility Fix */
 .page-header h1 {
-  color: #1a1a1a; 
+  color: #1a1a1a;
   font-size: 2rem;
   font-weight: 800;
 }
 
 .feature-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr; /* Two columns side-by-side */
+  grid-template-columns: 1fr 1fr; /* Two cards side-by-side */
   gap: 1.5rem;
 }
 
@@ -30,10 +32,8 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
-/* NEW: Use this for Admin Tools to sit below the two cards */
 .feature-card.full-width {
-  grid-column: span 2;
+  grid-column: span 2; /* Forces Admin card to full width row */
 }
 
 .feature-card h3 { color: #1a1a1a; margin-bottom: 0.75rem; }
-.feature-card p { color: #666; }

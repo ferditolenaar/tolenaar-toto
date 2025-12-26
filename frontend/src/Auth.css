@@ -1,8 +1,8 @@
 .auth-page-wrapper {
-  flex: 1; /* Fills the whole space between navbar and bottom */
+  flex: 1; /* Forces the wrapper to fill the space below the navbar */
   display: flex;
-  justify-content: center; /* Center horizontally */
-  align-items: center;     /* Center vertically */
+  justify-content: center; /* Horizontally centers the card */
+  align-items: center;     /* Vertically centers the card */
   width: 100%;
 }
 
@@ -24,7 +24,7 @@
   font-weight: 800;
 }
 
-/* Standard Auth Form Elements */
+/* Input Styles */
 .form-group { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.5rem; }
 .form-group label { font-size: 0.85rem; font-weight: 600; color: #666; text-align: left; }
 .form-group input { padding: 12px; border: 1.5px solid #ddd; border-radius: 8px; font-size: 1rem; }
