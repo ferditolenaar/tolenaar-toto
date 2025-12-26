@@ -45,7 +45,7 @@ body, html {
   display: flex;
   justify-content: space-between; /* Brand left, Links right */
   align-items: center;
-  width: 100%;
+  width: 1280px;
 }
 
 .nav-brand { font-size: 1.5rem; font-weight: 700; }
