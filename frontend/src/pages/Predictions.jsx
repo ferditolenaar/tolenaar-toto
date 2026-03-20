@@ -200,7 +200,7 @@ const PredictionsPage = () => {
 
     // --- Inside PredictionsPage component ---
 
-    const getTeamCode = (name) => name ? name.substring(0, 3).toUpperCase() : '...';
+    const getTeamCode = (name) => name ? name.substring(0, 8).toUpperCase() : '...';
 
     const formatDateTime = (dateStr, isMobile) => {
         const d = new Date(dateStr);
@@ -288,6 +288,7 @@ const PredictionsPage = () => {
                                                         }}
                                                     >−</button>
 
+                                                    <span className="label-tag desktop-only">HT</span>
                                                     <input
                                                         type="number"
                                                         className="in-ht"
@@ -362,6 +363,7 @@ const PredictionsPage = () => {
                                                             }}
                                                         >−</button>
 
+                                                        <span className="label-tag desktop-only">FT</span>
                                                         <input
                                                             type="number"
                                                             className="in-ft"
@@ -420,7 +422,7 @@ const PredictionsPage = () => {
                                             </div>
 
                                             <div className="score-box toto">
-                                                <span className="label-tag">TOTO</span>
+                                                <span className="label-tag desktop-only">TOTO</span>
                                                 <div className="toto-group">
                                                     {[1, 3, 2].map((val) => (
                                                         <button

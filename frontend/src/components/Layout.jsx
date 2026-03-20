@@ -1,16 +1,23 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Outlet, Link, useNavigate } from 'react-router-dom';
+import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import pb from '../lib/pocketbase';
 import '../Features.css';
 
 export default function Layout() {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false); // Profile dropdown
+  const [isMenuOpen, setIsMenuOpen] = useState(false); // Hamburger menu
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Get user info from PocketBase
   const user = pb.authStore.model;
   const isLoggedIn = !!user;
+
+  // Close both menus when the URL changes (user clicks a link)
+  useEffect(() => {
+    setIsMenuOpen(false);
+    setIsOpen(false);
+  }, [location]);
 
   // Close dropdown if user clicks outside
   useEffect(() => {
@@ -24,8 +31,9 @@ export default function Layout() {
   }, []);
 
   const handleLogout = () => {
-    pb.authStore.clear(); //
+    pb.authStore.clear();
     setIsOpen(false);
+    setIsMenuOpen(false);
     navigate('/login');
   };
 
@@ -36,9 +44,19 @@ export default function Layout() {
           <div className="nav-brand">
             <Link to="/">DeRoTo</Link>
           </div>
-          <div className="nav-links">
-            <Link to="/">Home</Link>
 
+          {/* HAMBURGER TOGGLE BUTTON */}
+          <button 
+            className="mobile-toggle" 
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            <span className={`bar ${isMenuOpen ? 'open' : ''}`}></span>
+            <span className={`bar ${isMenuOpen ? 'open' : ''}`}></span>
+            <span className={`bar ${isMenuOpen ? 'open' : ''}`}></span>
+          </button>
+
+          <div className={`nav-links ${isMenuOpen ? 'active' : ''}`}>
+            <Link to="/">Home</Link>
             <Link to="/voorspellen">Voorspellen</Link>
             <Link to="/top4">Top 4</Link>
             <Link to="/uitslagen">Uitslagen</Link>
@@ -46,37 +64,35 @@ export default function Layout() {
             {user?.role === 'admin' && <Link to="/admin">Admin</Link>}
 
             {isLoggedIn ? (
-                    <div className="profile-container" ref={dropdownRef}>
-                        <div 
-                            className="profile-bubble" 
-                            onClick={() => setIsOpen(!isOpen)}
-                        >
-                            {/* Display initials or a default user icon */}
-                            {user.firstName ? `${user.firstName.charAt(0).toUpperCase()} ${user.lastName.charAt(0).toUpperCase()}` : 'X'}
-                        </div>
+              <div className="profile-container" ref={dropdownRef}>
+                <div 
+                  className="profile-bubble" 
+                  onClick={() => setIsOpen(!isOpen)}
+                >
+                  {user.firstName ? `${user.firstName.charAt(0).toUpperCase()}${user.lastName.charAt(0).toUpperCase()}` : 'X'}
+                </div>
 
-                        {isOpen && (
-                            <div className="profile-dropdown">
-                                <div className="dropdown-header">
-                                    <strong>{`${user.firstName} ${user.lastName}` || 'Gebruiker'}</strong>
-                                    <span>{user.email}</span>
-                                </div>
-                                <hr />
-                                <button onClick={handleLogout} className="logout-item">
-                                    Uitloggen
-                                </button>
-                            </div>
-                        )}
+                {isOpen && (
+                  <div className="profile-dropdown">
+                    <div className="dropdown-header">
+                      <strong>{`${user.firstName} ${user.lastName}` || 'Gebruiker'}</strong>
+                      <span>{user.email}</span>
                     </div>
-                ) : (
-                    <Link to="/login" className="login-link">Login</Link>
+                    <hr />
+                    <button onClick={handleLogout} className="logout-item">
+                      Uitloggen
+                    </button>
+                  </div>
                 )}
+              </div>
+            ) : (
+              <Link to="/login" className="login-link">Login</Link>
+            )}
           </div>
         </div>
       </nav>
 
       <main className="content-area">
-        {/* Pages will render here. Auth pages will use a wrapper to center themselves. */}
         <Outlet />
       </main>
     </div>

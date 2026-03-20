@@ -538,13 +538,18 @@
     width: 40px;
     height: 40px;
     background: #f39c12;
-    /* Theme orange */
     color: white;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: bold;
+    
+    /* THE FIXES: */
+    font-size: 0.85rem;      /* Slightly smaller font helps them fit */
+    font-weight: 600;        /* Bold makes them clear even when tight */
+    letter-spacing: 1px;    /* Pulls the letters closer together */
+    padding: 0;              /* Ensure no internal padding is pushing them */
+    
     cursor: pointer;
     border: 2px solid transparent;
     transition: all 0.2s ease;
