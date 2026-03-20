@@ -1,276 +1,285 @@
 .page-container {
-  padding: 3rem 0;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
+    padding: 3rem 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 .page-header {
-  padding-top: 0.5rem;
-  padding-bottom: 1.5rem;
+    padding-top: 0.5rem;
+    padding-bottom: 1.5rem;
 }
 
 /* Visibility Fix */
 .page-header h1 {
-  color: #1a1a1a;
-  font-size: 1.6rem;
-  font-weight: 800;
+    color: #1a1a1a;
+    font-size: 1.6rem;
+    font-weight: 800;
 }
 
 .feature-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr; /* Two cards side-by-side */
-  gap: 1.5rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    /* Two cards side-by-side */
+    gap: 1.5rem;
 }
 
 .feature-card {
-  background: white;
-  padding: 2rem;
-  border-radius: 12px;
-  border: 1px solid #eee;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    border: 1px solid #eee;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .feature-card.full-width {
-  grid-column: span 2; /* Forces Admin card to full width row */
+    grid-column: span 2;
+    /* Forces Admin card to full width row */
 }
 
-.feature-card h3 { color: #1a1a1a; margin-bottom: 0.75rem; }
+.feature-card h3 {
+    color: #1a1a1a;
+    margin-bottom: 0.75rem;
+}
 
 /* Card Internal Layout */
 .feature-card {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .card-header h3 {
-  margin-bottom: 0.25rem;
-  font-size: 1.25rem;
+    margin-bottom: 0.25rem;
+    font-size: 1.25rem;
 }
 
 .card-header p {
-  font-size: 0.85rem;
-  color: #666;
-  margin-bottom: 1.5rem;
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 1.5rem;
 }
 
 .card-content {
-  flex-grow: 1;
+    flex-grow: 1;
 }
 
 /* Leaderboard Mini List */
 .mini-row {
-  display: flex;
-  align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
 }
 
 .mini-rank {
-  width: 24px;
-  height: 24px;
-  background: #eee;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.75rem;
-  font-weight: bold;
-  margin-right: 12px;
+    width: 24px;
+    height: 24px;
+    background: #eee;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: bold;
+    margin-right: 12px;
 }
 
 .mini-name {
-  flex-grow: 1;
-  font-weight: 500;
+    flex-grow: 1;
+    font-weight: 500;
 }
 
 .mini-points {
-  font-weight: 700;
-  color: var(--primary);
+    font-weight: 700;
+    color: var(--primary);
 }
 
 /* Match Mini List */
 .mini-match-row {
-  display: flex;
-  justify-content: space-between;
-  background: #f8f9fa;
-  padding: 10px 12px;
-  border-radius: 8px;
-  margin-bottom: 8px;
-  font-size: 0.9rem;
-  font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    background: #f8f9fa;
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
 }
 
 /* Action Buttons */
 .card-action-btn {
-  display: block;
-  text-align: center;
-  padding: 12px;
-  border-radius: 8px;
-  text-decoration: none;
-  font-weight: 700;
-  margin-top: 2rem;
-  transition: opacity 0.2s;
+    display: block;
+    text-align: center;
+    padding: 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 700;
+    margin-top: 2rem;
+    transition: opacity 0.2s;
 }
 
-.blue-btn { background-color: #007bff; color: white; }
-.green-btn { background-color: #28a745; color: white; }
+.blue-btn {
+    background-color: #007bff;
+    color: white;
+}
+
+.green-btn {
+    background-color: #28a745;
+    color: white;
+}
 
 .card-action-btn:hover {
-  opacity: 0.9;
-  color: white;
+    opacity: 0.9;
+    color: white;
 }
 
 /* ADMIN STYLES */
 /* --- Admin Control Bar Refinement --- */
 .admin-control-bar {
-  display: flex;
-  justify-content: flex-start;
-  margin-bottom: 2rem; /* Give space before the cards */
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 2rem;
+    /* Give space before the cards */
 }
 
 /* Container for the selector in the header */
 .admin-header-flex {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 2rem;
 }
 
 .tournament-selector-box {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  width: 100%;
-  padding: 1rem;
-  background: #ffffff;
-  border: 2px solid var(--primary); /* Makes it stand out */
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.1); /* Subtle blue glow */
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    width: 100%;
+    padding: 1rem;
+    background: #ffffff;
+    border: 2px solid var(--primary);
+    /* Makes it stand out */
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.1);
+    /* Subtle blue glow */
 }
 
 .tournament-selector-box label {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--primary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .admin-select {
-  width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  background: #fdfdfd;
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: #1a1a1a;
-  cursor: pointer;
-  outline: none;
-  transition: all 0.2s ease;
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    background: #fdfdfd;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s ease;
 }
 
 .admin-select:focus {
-  border-color: var(--primary);
-  background: #fff;
+    border-color: var(--primary);
+    background: #fff;
 }
 
 /* --- Improved Textarea Styling --- */
 .admin-textarea {
-  width: 100%;
-  min-height: 120px; /* Taller by default */
-  margin: 1rem 0; /* Space between text and button */
-  padding: 12px;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 8px;
-  font-family: 'Monaco', 'Consolas', monospace;
-  font-size: 0.85rem;
-  line-height: 1.4;
-  resize: vertical;
-  background-color: #f8fafc;
+    width: 100%;
+    min-height: 120px;
+    /* Taller by default */
+    margin: 1rem 0;
+    /* Space between text and button */
+    padding: 12px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    font-family: 'Monaco', 'Consolas', monospace;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    resize: vertical;
+    background-color: #f8fafc;
 }
 
 .admin-textarea:focus {
-  outline: none;
-  border-color: #3b82f6;
-  background-color: #fff;
+    outline: none;
+    border-color: #3b82f6;
+    background-color: #fff;
 }
 
 /* --- Card Grid Spacing --- */
 .feature-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 1.5rem; /* Consistent gap between all cards */
-  margin-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 1.5rem;
+    /* Consistent gap between all cards */
+    margin-top: 1rem;
 }
 
 /* Specific button adjustment */
 .submit-btn {
-  margin-top: 0.5rem;
-  padding: 12px 20px;
-  font-weight: 600;
-  transition: filter 0.2s;
+    margin-top: 0.5rem;
+    padding: 12px 20px;
+    font-weight: 600;
+    transition: filter 0.2s;
 }
 
 .submit-btn:hover {
-  filter: brightness(90%);
-}
-
-/* PREDICTIONS PAGE STYLES */
-.match-row-wide {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    background: rgba(255, 255, 255, 0.05);
-    padding: 15px 20px;
-    margin-bottom: 8px;
-    border-radius: 8px;
-    width: 100%;
-    gap: 15px;
-}
-
-.cell-time { width: 110px; flex-shrink: 0; font-size: 0.85rem; line-height: 1.3; }
-.date-nl { color: #f39c12; font-weight: bold; }
-.time-nl { color: #888; }
-
-.cell-city { width: 120px; flex-shrink: 0; font-size: 0.9rem; color: #bbb; }
-
-.cell-team { flex: 1.5; font-weight: bold; font-size: 1.1rem; }
-.cell-team.text-right { margin-right: 10px; }
-.cell-team.text-left { margin-left: 10px; }
-
-.cell-inputs {
-    display: flex;
-    flex-direction: row;
-    gap: 12px;
-    flex-shrink: 0;
-    align-items: center;
+    filter: brightness(90%);
 }
 
 .score-box {
     display: flex;
     align-items: center;
     gap: 4px;
-    background: rgba(0,0,0,0.3);
+    background: rgba(0, 0, 0, 0.3);
     padding: 5px 10px;
     border-radius: 6px;
 }
 
-.label-tag { font-size: 0.65rem; color: #777; font-weight: bold; margin-right: 3px; }
+.label-tag {
+    font-size: 0.7rem;
+    color: #999;
+    font-weight: 800;
+    text-transform: uppercase;
+    display: inline-block;
+    width: 25px; /* Fixed width prevents the inputs from shifting */
+}
 
 .in-ht {
-    width: 34px; height: 30px; background: #333; border: 1px solid #444;
-    color: white; text-align: center; border-radius: 4px;
+    width: 34px;
+    height: 30px;
+    background: #333;
+    border: 1px solid #444;
+    color: white;
+    text-align: center;
+    border-radius: 4px;
 }
 
 .in-ft {
-    width: 44px; height: 38px; background: white; border: none;
-    color: black; text-align: center; font-weight: bold; font-size: 1.2rem; border-radius: 4px;
+    width: 44px;
+    height: 38px;
+    background: white;
+    border: none;
+    color: black;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+    border-radius: 4px;
 }
 
-.cell-action { width: 90px; flex-shrink: 0; }
+.cell-action {
+    width: 90px;
+    flex-shrink: 0;
+}
 
 .score-box.toto {
     padding: 4px 8px;
@@ -284,7 +293,8 @@
 .toto-cube {
     width: 30px;
     height: 30px;
-    background: #444; /* Same as HT background */
+    background: #444;
+    /* Same as HT background */
     border: 1px solid #555;
     color: #999;
     font-weight: bold;
@@ -303,8 +313,9 @@
 }
 
 .toto-cube.active {
-    background: #f39c12; /* Matches your active theme */
-    border-color: #f39c12;
+    background: #27ae60;
+    /* Matches your active theme */
+    border-color: #27ae60;
     color: #fff;
 }
 
@@ -326,7 +337,8 @@
 
 .filter-block {
     padding: 8px 16px;
-    background: #2c3e50; /* Deep blue-grey */
+    background: #2c3e50;
+    /* Deep blue-grey */
     border: 1px solid #34495e;
     color: #95a5a6;
     border-radius: 6px;
@@ -342,7 +354,8 @@
 }
 
 .filter-block.active {
-    background: #3498db; /* Bright Blue */
+    background: #3498db;
+    /* Bright Blue */
     border-color: #3498db;
     color: white;
     box-shadow: 0 2px 10px rgba(52, 152, 219, 0.3);
@@ -354,14 +367,32 @@
     justify-content: center;
     font-weight: bold;
 }
-.check-ok { color: #27ae60; animation: fadeOut 2s forwards; }
-.spinner-dots { color: #f39c12; }
-.cross-err { color: #e74c3c; }
+
+.check-ok {
+    color: #27ae60;
+    animation: fadeOut 2s forwards;
+}
+
+.spinner-dots {
+    color: #f39c12;
+}
+
+.cross-err {
+    color: #e74c3c;
+}
 
 @keyframes fadeOut {
-    0% { opacity: 1; }
-    80% { opacity: 1; }
-    100% { opacity: 0; }
+    0% {
+        opacity: 1;
+    }
+
+    80% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
 }
 
 .floating-sync-bar {
@@ -373,18 +404,45 @@
     color: white;
     font-size: 0.9rem;
     font-weight: 600;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     transition: all 0.3s ease;
     z-index: 9999;
 }
 
 .floating-sync-bar.syncing {
-    background: #f39c12; /* Theme Orange */
+    background: #f39c12;
+    /* Theme Orange */
 }
 
 .floating-sync-bar.synced {
-    background: #27ae60; /* Success Green */
+    background: #27ae60;
+    /* Success Green */
     opacity: 0.9;
+}
+
+.floating-sync-bar.sync-error {
+    background-color: #e74c3c;
+    /* Red */
+    border-color: #c0392b;
+    color: white;
+    animation: shake 0.4s ease-in-out;
+    /* Optional shake effect */
+}
+
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-5px);
+    }
+
+    75% {
+        transform: translateX(5px);
+    }
 }
 
 .sync-content {
@@ -400,7 +458,7 @@
 .sync-loader {
     width: 16px;
     height: 16px;
-    border: 2px solid rgba(255,255,255,0.3);
+    border: 2px solid rgba(255, 255, 255, 0.3);
     border-top-color: #fff;
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
@@ -413,7 +471,8 @@
 
 .floating-sync-bar.clickable:hover {
     transform: translateY(-5px) scale(1.05);
-    background: #219150; /* Slightly darker green on hover */
+    background: #219150;
+    /* Slightly darker green on hover */
 }
 
 .floating-sync-bar.clickable:active {
@@ -443,12 +502,15 @@
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .row-disabled {
     opacity: 0.6;
-    pointer-events: none; /* Prevents all clicks/hovers */
+    pointer-events: none;
+    /* Prevents all clicks/hovers */
     filter: grayscale(0.5);
 }
 
@@ -475,7 +537,8 @@
 .profile-bubble {
     width: 40px;
     height: 40px;
-    background: #f39c12; /* Theme orange */
+    background: #f39c12;
+    /* Theme orange */
     color: white;
     border-radius: 50%;
     display: flex;
@@ -496,11 +559,12 @@
     position: absolute;
     top: 50px;
     right: 0;
-    background: #2c3e50; /* Match your header dark color */
+    background: #2c3e50;
+    /* Match your header dark color */
     border: 1px solid #34495e;
     border-radius: 8px;
     width: 200px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
     padding: 10px 0;
     z-index: 1000;
 }
@@ -533,7 +597,8 @@
     padding: 10px 15px;
     background: none;
     border: none;
-    color: #e74c3c; /* Red for logout */
+    color: #e74c3c;
+    /* Red for logout */
     cursor: pointer;
     font-weight: bold;
     font-size: 0.9rem;
@@ -549,7 +614,7 @@
     border-radius: 12px;
     padding: 20px;
     margin-top: 20px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 .leaderboard-table {
@@ -613,7 +678,8 @@
 }
 
 .top4-card.active {
-    border-left: 5px solid #f1c40f; /* Gold border for active Top 4 */
+    border-left: 5px solid #f1c40f;
+    /* Gold border for active Top 4 */
 }
 
 .highlight-card {
@@ -641,7 +707,7 @@
     background: white;
     padding: 30px;
     border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     max-width: 500px;
     margin: 0 auto;
 }
@@ -675,12 +741,14 @@
     color: #bdc3c7;
     background: #f9f9f9;
 }
+
 /* Unified Floating Sync Indicator */
 .sync-indicator {
     position: fixed;
     bottom: 25px;
     right: 25px;
-    background: #2ecc71; /* The green color from your predictions page */
+    background: #2ecc71;
+    /* The green color from your predictions page */
     color: white;
     padding: 12px 24px;
     border-radius: 50px;
@@ -705,7 +773,8 @@
 }
 
 .sync-indicator.syncing {
-    background: #f1c40f; /* Yellow while saving */
+    background: #f1c40f;
+    /* Yellow while saving */
     color: #2c3e50;
 }
 
@@ -717,15 +786,20 @@
 .sync-spinner {
     width: 16px;
     height: 16px;
-    border: 2px solid rgba(0,0,0,0.1);
+    border: 2px solid rgba(0, 0, 0, 0.1);
     border-top: 2px solid #2c3e50;
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 .top4-dual-container {
@@ -738,7 +812,8 @@
 .section-disabled {
     opacity: 0.6;
     filter: grayscale(0.5);
-    pointer-events: none; /* Prevents interaction */
+    pointer-events: none;
+    /* Prevents interaction */
 }
 
 .section-disabled .top4-select {
@@ -754,7 +829,8 @@
 }
 
 .section-header h2 {
-    color: #f1c40f; /* Gold for titles */
+    color: #f1c40f;
+    /* Gold for titles */
     margin-bottom: 5px;
 }
 
@@ -765,7 +841,8 @@
     justify-content: center;
     align-items: flex-start;
     margin-top: 20px;
-    margin-bottom: 100px; /* Space for sync bar */
+    margin-bottom: 100px;
+    /* Space for sync bar */
 }
 
 .top4-column {
@@ -775,7 +852,7 @@
     background: white;
     padding: 25px;
     border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
 }
 
@@ -802,7 +879,8 @@
 }
 
 .top4-column.section-disabled .status-msg {
-    color: #e74c3c; /* Red for locked/unavailable status */
+    color: #e74c3c;
+    /* Red for locked/unavailable status */
 }
 
 .admin-top4-grid {
@@ -826,4 +904,288 @@
 
 .full-width {
     grid-column: 1 / -1;
+}
+
+/* --- PREDICTIONS PAGE STYLES --- */
+
+/* 1. Desktop Layout (The Table) */
+.mobile-only {
+    display: none !important;
+}
+
+.match-row-wide {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    border-bottom: 1px solid #eee;
+    min-height: 80px;
+}
+
+.cell-time {
+    width: 180px;
+    flex-shrink: 0;
+    font-size: 0.85rem;
+    line-height: 1.3;
+}
+
+.desktop-date {
+    color: #f39c12;
+    font-weight: bold;
+}
+
+.desktop-time {
+    color: #888;
+}
+
+.cell-city {
+    width: 150px;
+    flex-shrink: 0;
+    font-size: 0.9rem;
+    color: #bbb;
+}
+
+.cell-team {
+    width: 180px;
+    flex-shrink: 0;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.mobile-team-container {
+    display: contents;
+    /* Makes it invisible on desktop so children align to the row */
+}
+
+/* 2. Desktop Inputs */
+.cell-inputs {
+    display: flex;
+    flex: 1;
+    justify-content: flex-end;
+    gap: 15px;
+    align-items: center;
+}
+
+.score-box {
+    background: transparent;
+    padding: 0;
+    gap: 10px;
+}
+
+/* Ensure HT and FT containers have consistent spacing */
+.input-group-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* The horizontal dash between Home and Away on desktop */
+.score-dash {
+    color: #999;
+    font-weight: bold;
+    padding: 0 4px;
+}
+
+/* Fix for the HT input styling to match the image you liked */
+.in-ht {
+    width: 36px;
+    height: 32px;
+    background: #333;
+    border: 1px solid #444;
+    color: white;
+    text-align: center;
+    border-radius: 4px;
+}
+
+/* Fix for the FT input styling */
+.in-ft {
+    width: 44px;
+    height: 40px;
+    background: #fff;
+    border: 1px solid #ddd;
+    color: #000;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+    border-radius: 4px;
+}
+
+.score-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(0, 0, 0, 0.05); /* Light gray pill */
+    padding: 5px 10px;
+    border-radius: 8px;
+    transition: background 0.2s ease;
+}
+
+.score-input-wrapper:hover {
+    background: rgba(0, 0, 0, 0.08);
+}
+
+/* 3. Mobile Overrides (The Card) */
+@media (max-width: 768px) {
+    .desktop-only {
+        display: none !important;
+    }
+
+    .mobile-only {
+        display: inline-block !important;
+    }
+
+    .match-row-wide {
+        flex-direction: column;
+        height: auto;
+        padding: 15px;
+        gap: 12px;
+        align-items: center;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        border: 1px solid #eee;
+    }
+
+    .cell-time {
+        width: 100%;
+        text-align: center;
+        color: #7f8c8d;
+    }
+
+    .mobile-team-container {
+        display: flex;
+        /* Activate for mobile */
+        flex-direction: row;
+        align-items: center;
+        /* VITAL: This centers the codes and the "vs" */
+        justify-content: center;
+        gap: 15px;
+        width: 100%;
+    }
+
+    .cell-team {
+        width: auto !important;
+        font-size: 1.5rem;
+        font-weight: 900;
+    }
+
+    .team-vs {
+        font-size: 0.8rem;
+        color: #bdc3c7;
+        font-weight: bold;
+        text-transform: uppercase;
+        margin-top: 4px;
+        /* Slight nudge for optical centering */
+    }
+
+    .cell-inputs {
+        flex-direction: column !important;
+        /* Stack HT above FT */
+        gap: 20px;
+        width: 100%;
+        align-items: center;
+    }
+
+    .input-group-container {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .group-label {
+        display: block !important;
+        font-size: 0.75rem;
+        color: #f39c12;
+        /* Theme orange to make it pop */
+        margin-bottom: 5px;
+        text-transform: uppercase;
+        font-weight: 800;
+    }
+
+    .input-group-container {
+        flex-direction: column;
+        width: 100%;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .group-label {
+        font-size: 0.75rem;
+        color: #f39c12;
+        font-weight: 800;
+        margin-bottom: 4px;
+    }
+
+    /* Style the buttons ONLY when they are visible on mobile */
+    .stepper-btn {
+        width: 36px;
+        height: 44px;
+        background: #333;
+        color: white;
+        border: 1px solid #444;
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .in-ht,
+    .in-ft {
+        width: 45px !important;
+        height: 44px !important;
+        border-radius: 0 !important;
+        /* Makes it sit flush with buttons */
+    }
+
+    /* Rounded corners for the outer edges */
+    .stepper-btn.minus {
+        border-radius: 4px 0 0 4px;
+    }
+
+    .stepper-btn.plus {
+        border-radius: 0 4px 4px 0;
+    }
+
+    .score-input-wrapper {
+        background: transparent !important;
+        padding: 0 !important;
+        gap: 1px; /* Let the stepper buttons handle spacing */
+    }
+
+    /* Remove rounded corners from the input when buttons are present */
+    .score-input-wrapper input {
+        border-radius: 0;
+        margin: 0;
+    }
+
+    .score-dash {
+        /* Hide the dash on mobile since the buttons/stacking provide enough separation */
+        display: none;
+    }
+}
+
+.stepper-btn:hover:not(:disabled) {
+    background: #555;
+    border-color: #f39c12;
+    /* Theme Orange */
+}
+
+.stepper-btn:active:not(:disabled) {
+    background: #f39c12;
+    transform: scale(0.95);
+}
+
+.stepper-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* Ensure the wrapper looks like a single unit on mobile */
+@media (max-width: 768px) {
+    .stepper-btn {
+        width: 35px;
+        /* Larger hit area for thumbs */
+        height: 45px;
+        /* Matches mobile input height */
+    }
 }

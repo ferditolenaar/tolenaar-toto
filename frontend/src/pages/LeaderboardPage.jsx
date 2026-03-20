@@ -12,11 +12,17 @@ const LeaderboardPage = () => {
             try {
                 setLoading(true);
 
-                // 1. Fetch Active Rules & Official Top 4 Results
+                // Add .catch(() => null) to activeRules so the page doesn't die if settings aren't set up yet
                 const [activeRules, official] = await Promise.all([
-                    pb.collection('tournament_settings').getFirstListItem('is_active=true', { requestKey: null }),
+                    pb.collection('tournament_settings').getFirstListItem('is_active=true', { requestKey: null }).catch(() => null),
                     pb.collection('tournament_top4').getFirstListItem('', { requestKey: null }).catch(() => null)
                 ]);
+
+                if (!activeRules) {
+                    console.warn("No active tournament rules found.");
+                    setLoading(false);
+                    return;
+                }
                 setRules(activeRules);
 
                 // 2. Fetch Matches, Paid Users, Match Predictions, and Top 4 Predictions
@@ -27,7 +33,14 @@ const LeaderboardPage = () => {
                     pb.collection('top_four_predictions').getFullList({ requestKey: null })
                 ]);
 
-                console.log(`Loaded: ${matches.length} matches, ${users.length} users, ${predictions.length} match preds, ${top4Preds.length} top4 preds`);
+                const now = new Date();
+                const TWO_HOURS_IN_MS = 2 * 60 * 60 * 1000;
+
+                // Filter to only include matches that started at least 2 hours ago
+                const finishedMatches = matches.filter(m => {
+                    const matchStart = new Date(m.match_date);
+                    return (now.getTime() - matchStart.getTime()) >= TWO_HOURS_IN_MS;
+                });
 
                 // 3. Calculate Scores
                 const userScores = users.map(user => {
@@ -35,28 +48,31 @@ const LeaderboardPage = () => {
                     let matchPointsTotal = 0;
                     let top4PointsTotal = 0;
 
-                    // --- Part A & B: Match Scoring ---
                     const userPreds = predictions.filter(p => p.user === user.id);
                     userPreds.forEach(pred => {
+                        // Use finishedMatches here instead of the raw matches list
                         const match = matches.find(m => m.id === pred.match);
+                        // const match = finishedMatches.find(m => m.id === pred.match);
+
                         if (match && match.home_ft !== null && match.home_ft !== undefined) {
                             matchPointsTotal += calculateMatchPoints(pred, match, activeRules);
                         }
                     });
 
-                    // --- Part C: Top 4 Scoring (Matrix Based) ---
+                    // --- Part C: Top 4 Scoring ---
                     const userTop4List = top4Preds.filter(p => p.user === user.id);
                     const preTournament = userTop4List.find(p => p.phase === 'pre_tournament');
                     const postGroup = userTop4List.find(p => p.phase === 'post_group_stage');
 
-                    top4PointsTotal += calculateTop4Points(preTournament, official, activeRules.points_matrix);
-                    top4PointsTotal += calculateTop4Points(postGroup, official, activeRules.points_matrix);
+                    // Use the specific matrix for each phase
+                    top4PointsTotal += calculateTop4Points(preTournament, official, activeRules.top4_pre_tournament);
+                    top4PointsTotal += calculateTop4Points(postGroup, official, activeRules.top4_post_tournament);
 
                     total = matchPointsTotal + top4PointsTotal;
 
                     return {
                         id: user.id,
-                        name: user.firstName ? `${user.firstName} ${user.lastName}` : (user.name || user.username),
+                        name: user.firstName ? `${user.firstName} ${user.lastName}` : (user.email),
                         matchPoints: matchPointsTotal,
                         top4Points: top4PointsTotal,
                         points: total
@@ -114,24 +130,24 @@ const LeaderboardPage = () => {
         if (!userPred || !official || !matrixJson) return 0;
 
         let total = 0;
-        let matrix;
-        try {
-            matrix = typeof matrixJson === 'string' ? JSON.parse(matrixJson) : matrixJson;
-        } catch (e) {
-            console.error("Matrix parse error", e);
-            return 0;
-        }
+        const matrix = typeof matrixJson === 'string' ? JSON.parse(matrixJson) : matrixJson;
 
         const userRanks = [userPred.rank_1, userPred.rank_2, userPred.rank_3, userPred.rank_4];
         const officialRanks = [official.rank_1, official.rank_2, official.rank_3, official.rank_4];
 
-        userRanks.forEach((predId, uIndex) => {
-            if (!predId) return;
-            const oIndex = officialRanks.indexOf(predId);
-            if (oIndex !== -1) {
-                const userRankKey = `rank_${uIndex + 1}`;
-                const officialRankKey = `rank_${oIndex + 1}`;
-                const points = matrix[userRankKey]?.[officialRankKey] || 0;
+        userRanks.forEach((predTeamId, uIdx) => {
+            if (!predTeamId) return;
+
+            // Check if the predicted team exists anywhere in the official top 4
+            const actualPositionIndex = officialRanks.indexOf(predTeamId);
+
+            if (actualPositionIndex !== -1) {
+                const predRankKey = `rank_${uIdx + 1}`;
+                const actualRankKey = `rank_${actualPositionIndex + 1}`;
+
+                // This lookup will now automatically use the "equal" values 
+                // defined in your Euro JSON matrix if that is the active tournament.
+                const points = matrix[predRankKey]?.[actualRankKey] || 0;
                 total += Number(points);
             }
         });

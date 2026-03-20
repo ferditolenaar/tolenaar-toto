@@ -79,8 +79,8 @@ export default function StartPage() {
       <div className="top4-banner-grid">
         <div className={`feature-card top4-card ${isPreTournamentLocked ? 'locked' : 'active'}`}>
            <div className="card-header">
-              <h3>🏆 Top 4: Pre-Tournament</h3>
-              <p>{isPreTournamentLocked ? "🔒 Gesloten (Start WK)" : "Voorspel de top 4 vóór het WK begint!"}</p>
+              <h3>🏆 Top 4 voorspelling!</h3>
+              <p>{isPreTournamentLocked ? "🔒 Gesloten (Start WK)" : "Voorspel de top 4 vóór het WK begint"}</p>
            </div>
            <Link to="/top4" className={`card-action-btn ${isPreTournamentLocked ? 'gray-btn' : 'gold-btn'}`}>
              {isPreTournamentLocked ? "Bekijk Voorspelling" : "Nu Invullen"}
@@ -90,7 +90,7 @@ export default function StartPage() {
         {isPostGroupActive && (
           <div className="feature-card top4-card active highlight-card">
             <div className="card-header">
-                <h3>🔥 Top 4: Post-Group Stage</h3>
+                <h3>🔥 Top 4: Na de groepsfase</h3>
                 <p>De groepsfase is voorbij. Wie haalt de laatste vier?</p>
             </div>
             <Link to="/top4" className="card-action-btn gold-btn">
@@ -112,7 +112,7 @@ export default function StartPage() {
               {leaderboard.map((user, index) => (
                 <div key={user.id} className="mini-row">
                   <span className="mini-rank">{index + 1}</span>
-                  <span className="mini-name">{user.username || user.name || 'Anoniem'}</span>
+                  <span className="mini-name">{`${user.firstName} ${user.lastName}` || 'Anoniem'}</span>
                   <span className="mini-points">{user.total_points || 0}</span>
                 </div>
               ))}

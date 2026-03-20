@@ -129,26 +129,42 @@ const AdminMatchResults = () => {
                                             <div className="score-box ht">
                                                 <span className="label-tag">HT</span>
                                                 <input type="number" className="in-ht" disabled={!isAdmin}
+                                                    min="0"
+                                                    placeholder="-"
+                                                    inputMode="numeric"
+                                                    pattern="[0-9]*"
                                                     onBlur={() => isAdmin && autoSaveResult(m.id, m)}
-                                                    value={m.home_ht ?? 0}
+                                                    value={m.home_ht ?? ''}
                                                     onChange={(e) => handleResultChange(m.id, 'home_ht', e.target.value)} />
                                                 <span className="dash">-</span>
                                                 <input type="number" className="in-ht" disabled={!isAdmin}
+                                                    min="0"
+                                                    placeholder="-"
+                                                    inputMode="numeric"
+                                                    pattern="[0-9]*"
                                                     onBlur={() => isAdmin && autoSaveResult(m.id, m)}
-                                                    value={m.away_ht ?? 0}
+                                                    value={m.away_ht ?? ''}
                                                     onChange={(e) => handleResultChange(m.id, 'away_ht', e.target.value)} />
                                             </div>
 
                                             <div className="score-box ft">
                                                 <span className="label-tag">FT</span>
                                                 <input type="number" className="in-ft" disabled={!isAdmin}
+                                                    min="0"
+                                                    placeholder="-"
+                                                    inputMode="numeric"
+                                                    pattern="[0-9]*"
                                                     onBlur={() => isAdmin && autoSaveResult(m.id, m)}
-                                                    value={m.home_ft ?? 0}
+                                                    value={m.home_ft ?? ''}
                                                     onChange={(e) => handleResultChange(m.id, 'home_ft', e.target.value)} />
                                                 <span className="colon">:</span>
                                                 <input type="number" className="in-ft" disabled={!isAdmin}
+                                                    min="0"
+                                                    placeholder="-"
+                                                    inputMode="numeric"
+                                                    pattern="[0-9]*"
                                                     onBlur={() => isAdmin && autoSaveResult(m.id, m)}
-                                                    value={m.away_ft ?? 0}
+                                                    value={m.away_ft ?? ''}
                                                     onChange={(e) => handleResultChange(m.id, 'away_ft', e.target.value)} />
                                             </div>
 

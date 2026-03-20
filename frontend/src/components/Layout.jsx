@@ -52,13 +52,13 @@ export default function Layout() {
                             onClick={() => setIsOpen(!isOpen)}
                         >
                             {/* Display initials or a default user icon */}
-                            {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                            {user.firstName ? `${user.firstName.charAt(0).toUpperCase()} ${user.lastName.charAt(0).toUpperCase()}` : 'X'}
                         </div>
 
                         {isOpen && (
                             <div className="profile-dropdown">
                                 <div className="dropdown-header">
-                                    <strong>{user.name || 'Gebruiker'}</strong>
+                                    <strong>{`${user.firstName} ${user.lastName}` || 'Gebruiker'}</strong>
                                     <span>{user.email}</span>
                                 </div>
                                 <hr />

@@ -28,7 +28,7 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit}>
           
           <div className="form-group">
-            <label htmlFor="email">Email address</label>
+            <label htmlFor="email">Emailadres</label>
             <input 
               id="email" 
               type="email" 
@@ -39,7 +39,7 @@ export default function LoginPage() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">Wachtwoord</label>
             <input 
               id="password" 
               type="password" 
@@ -55,7 +55,7 @@ export default function LoginPage() {
         </form>
 
         <p className="auth-footer">
-          Don't have an account? <Link to="/register">Register here</Link>
+          Nog geen account? <Link to="/register">Registreer hier</Link>
         </p>
       </div>
     </div>

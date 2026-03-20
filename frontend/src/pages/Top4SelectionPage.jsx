@@ -139,13 +139,13 @@ const Top4SelectionPage = () => {
 
             <div className="top4-side-by-side">
                 {renderPhaseCard(
-                    "Fase 1: Pre-Tournament", 
+                    "Fase 1: Voor het toernooi", 
                     isPreLocked ? "🔒 Voorspelling gesloten" : "Kies vóór de start van het WK.",
                     preSelection, setPreSelection, isPreLocked, false, 'pre_tournament'
                 )}
 
                 {renderPhaseCard(
-                    "Fase 2: Post-Group Stage", 
+                    "Fase 2: Na de groepsfase", 
                     !isPostOpen ? "⏳ Beschikbaar na groepsfase" : "Kies vóór de knock-outs.",
                     postSelection, setPostSelection, false, !isPostOpen, 'post_group_stage'
                 )}
