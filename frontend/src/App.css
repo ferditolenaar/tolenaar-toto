@@ -1,6 +1,12 @@
 /* --- GLOBAL RESET --- */
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body, html { 
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body,
+html {
   width: 100%;
   height: 100%;
   background-color: #f8f9fa;
@@ -15,18 +21,18 @@ body, html {
   width: 100%;
 }
 
+/* 1. Ensure the main content doesn't "touch" the screen edges on mobile */
 .content-area {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  width: 100%; 
+  width: 100%;
+  padding: 0 1rem;
+  /* Standard mobile gutter */
 }
 
 /* THE SPINE (1280px) */
 .container-centered {
   width: 100%;
-  max-width: 1280px; 
-  margin: 0 auto !important; 
+  max-width: 1280px;
+  margin: 0 auto !important;
   padding: 0 2rem;
 }
 
@@ -35,48 +41,54 @@ body, html {
   width: 100%;
   background: #1a1a1a;
   color: white;
-  min-height: 64px; /* Changed to min-height so it can grow if links wrap */
+  min-height: 64px;
+  /* Changed to min-height so it can grow if links wrap */
   display: flex;
   align-items: center;
-  position: sticky; /* Useful for long prediction pages */
+  position: sticky;
+  /* Useful for long prediction pages */
   top: 0;
   z-index: 1000;
 }
 
 .nav-inner {
   display: flex;
-  justify-content: space-between; 
+  justify-content: space-between;
   align-items: center;
-  width: 100%; /* Changed from 1280px to 100% */
+  width: 100%;
+  /* Changed from 1280px to 100% */
 }
 
-.nav-brand a { 
-  color: white; 
-  font-size: 1.5rem; 
-  font-weight: 700; 
-  text-decoration: none; 
+.nav-brand a {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-decoration: none;
   white-space: nowrap;
 }
 
-.nav-links { 
-  display: flex; 
-  gap: 1.5rem; 
-  align-items: center; 
+.nav-links {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
 }
 
-.nav-links a { 
-  color: #adb5bd; 
-  text-decoration: none; 
-  font-weight: 500; 
-  transition: 0.2s; 
+.nav-links a {
+  color: #adb5bd;
+  text-decoration: none;
+  font-weight: 500;
+  transition: 0.2s;
   white-space: nowrap;
 }
 
-.nav-links a:hover { color: white; }
+.nav-links a:hover {
+  color: white;
+}
 
 /* --- HAMBURGER STYLES --- */
 .mobile-toggle {
-  display: none; /* Hidden on desktop */
+  display: none;
+  /* Hidden on desktop */
   flex-direction: column;
   justify-content: space-between;
   width: 30px;
@@ -97,19 +109,51 @@ body, html {
 }
 
 /* --- MOBILE ANIMATION --- */
-.bar.open:nth-child(1) { transform: translateY(9px) rotate(45deg); }
-.bar.open:nth-child(2) { opacity: 0; }
-.bar.open:nth-child(3) { transform: translateY(-9px) rotate(-45deg); }
+.bar.open:nth-child(1) {
+  transform: translateY(9px) rotate(45deg);
+}
+
+.bar.open:nth-child(2) {
+  opacity: 0;
+}
+
+.bar.open:nth-child(3) {
+  transform: translateY(-9px) rotate(-45deg);
+}
 
 @media (max-width: 768px) {
+  .feature-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1.5rem;
+  }
+
+  /* Force "Full Width" cards to actually be 100% width */
+  .feature-card,
+  .feature-card.full-width {
+    grid-column: span 1 !important;
+    width: 100% !important;
+    padding: 1.5rem !important;
+    /* Slightly tighter padding for small screens */
+  }
+
+  /* Standardize Headings across all pages */
+  .page-header h1 {
+    font-size: 1.4rem !important;
+    text-align: center;
+  }
+
   .mobile-toggle {
-    display: flex; /* Show on mobile */
+    display: flex;
+    /* Show on mobile */
   }
 
   .nav-links {
     position: fixed;
-    top: 64px; /* Matches navbar height */
-    left: -100%; /* Hide off-screen */
+    top: 64px;
+    /* Matches navbar height */
+    left: -100%;
+    /* Hide off-screen */
     width: 100%;
     height: calc(100vh - 64px);
     background-color: #1a1a1a;
@@ -123,7 +167,8 @@ body, html {
   }
 
   .nav-links.active {
-    left: 0; /* Slide in */
+    left: 0;
+    /* Slide in */
   }
 
   /* Adjust profile bubble for mobile menu */
@@ -133,7 +178,7 @@ body, html {
     width: 250px;
     background: #2a2a2a;
   }
-  
+
   .nav-inner {
     width: 100% !important;
     justify-content: space-between;
