@@ -24,7 +24,18 @@ const Top4SelectionPage = () => {
                     pb.collection('tournaments').getFirstListItem('is_active=true', { requestKey: null })
                 ]);
 
-                setTeams(teamList);
+                // FILTER: Only keep actual countries
+                // This assumes placeholders contain words like 'Group', 'Winner', 'Runner', or 'Plek'
+                const actualCountries = teamList.filter(team => {
+                    const name = team.name.toLowerCase();
+                    return !name.includes('3e') &&
+                        !name.includes('1e') &&
+                        !name.includes('2e') &&
+                        !name.includes('wedstrijd') &&
+                        !name.includes('winnaar'); // for Dutch placeholders
+                });
+
+                setTeams(actualCountries);
 
                 const now = new Date();
                 if (matches.length > 0) {
@@ -76,8 +87,8 @@ const Top4SelectionPage = () => {
                 await pb.collection('top_four_predictions').update(updatedSelection.id, data);
             } else {
                 const res = await pb.collection('top_four_predictions').create(data);
-                if (phaseKey === 'pre_tournament') setPreSelection(p => ({...p, id: res.id}));
-                else setPostSelection(p => ({...p, id: res.id}));
+                if (phaseKey === 'pre_tournament') setPreSelection(p => ({ ...p, id: res.id }));
+                else setPostSelection(p => ({ ...p, id: res.id }));
             }
             setLastSaved(new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' }));
         } catch (err) {
@@ -89,14 +100,14 @@ const Top4SelectionPage = () => {
 
     const renderPhaseCard = (title, subtitle, selection, setSelection, isLocked, isDisabled, phaseKey) => {
         const labels = ["🥇 1e Plaats", "🥈 2e Plaats", "🥉 3e Plaats", "🏅 4e Plaats"];
-        
+
         return (
             <div className={`top4-column ${isLocked || isDisabled ? 'section-disabled' : ''}`}>
                 <div className="card-header">
                     <h3>{title}</h3>
                     <p className="status-msg">{subtitle}</p>
                 </div>
-                
+
                 <div className="top4-card-selection">
                     {[1, 2, 3, 4].map((num) => {
                         const rankKey = `rank_${num}`;
@@ -139,13 +150,13 @@ const Top4SelectionPage = () => {
 
             <div className="top4-side-by-side">
                 {renderPhaseCard(
-                    "Fase 1: Voor het toernooi", 
+                    "Fase 1: Voor het toernooi",
                     isPreLocked ? "🔒 Voorspelling gesloten" : "Kies vóór de start van het WK.",
                     preSelection, setPreSelection, isPreLocked, false, 'pre_tournament'
                 )}
 
                 {renderPhaseCard(
-                    "Fase 2: Na de groepsfase", 
+                    "Fase 2: Na de groepsfase",
                     !isPostOpen ? "⏳ Beschikbaar na groepsfase" : "Kies vóór de knock-outs.",
                     postSelection, setPostSelection, false, !isPostOpen, 'post_group_stage'
                 )}

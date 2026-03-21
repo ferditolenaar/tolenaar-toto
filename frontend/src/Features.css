@@ -1167,6 +1167,27 @@
         /* Hide the dash on mobile since the buttons/stacking provide enough separation */
         display: none;
     }
+
+    .top4-side-by-side {
+        flex-direction: column !important;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .top4-column {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    .top4-card-selection {
+        padding: 15px; /* Tighter padding for mobile */
+    }
+
+    .top4-select {
+        font-size: 16px; /* Prevents iOS from zooming in on focus */
+        padding: 12px;
+    }
 }
 
 .stepper-btn:hover:not(:disabled) {
