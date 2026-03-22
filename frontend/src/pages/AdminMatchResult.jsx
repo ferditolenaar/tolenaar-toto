@@ -10,7 +10,7 @@ const AdminMatchResults = () => {
     const user = pb.authStore.model;
     const isAdmin = user?.role === 'admin';
 
-    const stageOrder = ['Groepsfase', 'Zestiende Finale', 'Achtste Finale', 'Kwartfinale', 'Halve Finale', 'Troostfinale', 'Finale'];
+    const stageOrder = ['Groepsfase', 'Zestiende Finale', 'Achtste Finale', 'Kwartfinale', 'Halve activeStage inale', 'Troostfinale', 'Finale'];
     const [activeStages, setActiveStages] = useState(stageOrder);
 
     useEffect(() => { loadData(); }, []);
@@ -33,27 +33,29 @@ const AdminMatchResults = () => {
         const observer = new IntersectionObserver(
             (entries) => {
                 entries.forEach((entry) => {
-                    // We only update if the section is occupying the top-ish part of the screen
                     if (entry.isIntersecting) {
-                        setVisibleStage(entry.target.id);
+                        let stageId = entry.target.id;
+
+                        // Group the last three stages under the 'Halve Finale' highlight
+                        if (['Troostfinale', 'Finale'].includes(stageId)) {
+                            stageId = 'Halve Finale';
+                        }
+
+                        setVisibleStage(stageId);
                     }
                 });
             },
-            {
-                // This margin acts like a "trigger zone" 
-                // It looks for elements entering the top 20% of the viewport
-                rootMargin: "-10px 0px -80% 0px",
-                threshold: 0
-            }
+            { rootMargin: "-10px 0px -80% 0px", threshold: 0 }
         );
 
+        // Observe all stages so we can trigger the highlight shift
         stageOrder.forEach((stage) => {
             const el = document.getElementById(stage);
             if (el) observer.observe(el);
         });
 
         return () => observer.disconnect();
-    }, [matches]); // Re-run if matches change to re-observe new elements
+    }, [matches]);
 
     // --- CENTRAL PROCESSING ENGINE ---
     const processUpdate = (matchId, field, value) => {
@@ -185,8 +187,14 @@ const AdminMatchResults = () => {
                     if (!stageMatches || !activeStages.includes(stageName)) return null;
 
                     return (
-                        <div key={stageName} className="stage-group">
-                            <h2 className="stage-header-title">{stageName}</h2>
+                        <div
+                            key={stageName}
+                            id={stageName}
+                            className={`stage-group`}
+                        >
+                            <h2 className="stage-header-title">
+                                {stageName}
+                            </h2>
                             <div className="matches-table-wrapper">
                                 {stageMatches.map(m => (
                                     <div key={m.id} className="match-row-wide">
