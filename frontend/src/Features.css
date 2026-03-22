@@ -5,9 +5,33 @@
     flex-direction: column;
 }
 
+/* The main page header (Title, etc.) */
 .page-header {
-    padding-top: 0.5rem;
-    padding-bottom: 1.5rem;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    padding-bottom: 10px;
+}
+
+/* The navigation buttons / filter container */
+.filter-container {
+    position: sticky;
+    top: 80px;
+    /* Adjust this to match the height of your .page-header */
+    z-index: 999;
+    padding: 10px 0;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    /* Allows horizontal swiping on mobile */
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Optional: Add a subtle shadow when scrolling to separate it from the content */
+.page-header.scrolled,
+.filter-container.scrolled {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 /* Visibility Fix */
@@ -251,7 +275,7 @@
     font-weight: 800;
     text-transform: uppercase;
     display: inline-block;
-    width: 25px; /* Fixed width prevents the inputs from shifting */
+    width: 25px;
 }
 
 .in-ht {
@@ -281,13 +305,33 @@
     flex-shrink: 0;
 }
 
+/* Ensure the TOTO container handles its children correctly */
 .score-box.toto {
-    padding: 4px 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    /* Prevents container from blowing out */
 }
 
+/* Prevent the "TOTO" word from shrinking or disappearing */
+.score-input-wrapper .toto-label {
+    font-size: 0.7rem;
+    color: #999;
+    font-weight: 800;
+    margin-right: 8px;
+    text-transform: uppercase;
+    flex-shrink: 0;
+    /* Forces the word TOTO to stay visible */
+    display: inline-block;
+    /* Re-enables layout properties after unset */
+}
+
+/* Ensure the button group stays together */
 .toto-group {
     display: flex;
     gap: 4px;
+    flex-shrink: 0;
 }
 
 .toto-cube {
@@ -429,6 +473,21 @@
     /* Optional shake effect */
 }
 
+/* @keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  50% { transform: translateX(5px); }
+  75% { transform: translateX(-5px); }
+  100% { transform: translateX(0); }
+} */
+
+.sync-error-shake {
+    animation: shake 0.4s ease-in-out;
+    background-color: #ff4d4d !important;
+    /* Ensure it stays red */
+}
+
+
 @keyframes shake {
 
     0%,
@@ -543,13 +602,17 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    
+
     /* THE FIXES: */
-    font-size: 0.85rem;      /* Slightly smaller font helps them fit */
-    font-weight: 600;        /* Bold makes them clear even when tight */
-    letter-spacing: 1px;    /* Pulls the letters closer together */
-    padding: 0;              /* Ensure no internal padding is pushing them */
-    
+    font-size: 0.85rem;
+    /* Slightly smaller font helps them fit */
+    font-weight: 600;
+    /* Bold makes them clear even when tight */
+    letter-spacing: 1px;
+    /* Pulls the letters closer together */
+    padding: 0;
+    /* Ensure no internal padding is pushing them */
+
     cursor: pointer;
     border: 2px solid transparent;
     transition: all 0.2s ease;
@@ -1020,7 +1083,8 @@
     display: flex;
     align-items: center;
     gap: 4px;
-    background: rgba(0, 0, 0, 0.05); /* Light gray pill */
+    background: rgba(0, 0, 0, 0.05);
+    /* Light gray pill */
     padding: 5px 10px;
     border-radius: 8px;
     transition: background 0.2s ease;
@@ -1038,6 +1102,28 @@
 
     .mobile-only {
         display: inline-block !important;
+    }
+
+    .filter-container {
+        justify-content: space-evenly;
+        /* Evenly spaces the 5 buttons */
+        padding: 24px 8px;
+        overflow-x: hidden;
+        /* We might not even need to scroll now! */
+    }
+
+
+    .filter-container::-webkit-scrollbar {
+        display: none;
+        /* Hides scrollbar on Chrome/Safari/Edge */
+    }
+
+    .filter-block {
+        flex: 1;
+        /* Makes all 5 buttons the same width for a "tab" look */
+        text-align: center;
+        padding: 8px 4px;
+        font-size: 0.8rem;
     }
 
     .match-row-wide {
@@ -1125,9 +1211,9 @@
     .stepper-btn {
         width: 36px;
         height: 44px;
-        background: #333;
-        color: white;
-        border: 1px solid #444;
+        background-color: #f0f0f0;
+        color: #666;
+        border: 1px solid #ddd;
         font-size: 1.2rem;
         display: flex;
         align-items: center;
@@ -1142,6 +1228,12 @@
         /* Makes it sit flush with buttons */
     }
 
+    .in-ht {
+        background-color: #fafafa;
+        color: #000;
+        border-color: #ddd;
+    }
+
     /* Rounded corners for the outer edges */
     .stepper-btn.minus {
         border-radius: 4px 0 0 4px;
@@ -1154,7 +1246,8 @@
     .score-input-wrapper {
         background: transparent !important;
         padding: 0 !important;
-        gap: 1px; /* Let the stepper buttons handle spacing */
+        gap: 1px;
+        /* Let the stepper buttons handle spacing */
     }
 
     /* Remove rounded corners from the input when buttons are present */
@@ -1181,11 +1274,13 @@
     }
 
     .top4-card-selection {
-        padding: 15px; /* Tighter padding for mobile */
+        padding: 15px;
+        /* Tighter padding for mobile */
     }
 
     .top4-select {
-        font-size: 16px; /* Prevents iOS from zooming in on focus */
+        font-size: 16px;
+        /* Prevents iOS from zooming in on focus */
         padding: 12px;
     }
 }

@@ -7,16 +7,13 @@ const AdminMatchResults = () => {
     const [isSyncing, setIsSyncing] = useState(false);
     const [lastSaved, setLastSaved] = useState(null);
 
-    // Updated Role Check: matches your 'role' column
     const user = pb.authStore.model;
     const isAdmin = user?.role === 'admin';
 
     const stageOrder = ['Groepsfase', 'Zestiende Finale', 'Achtste Finale', 'Kwartfinale', 'Halve Finale', 'Troostfinale', 'Finale'];
     const [activeStages, setActiveStages] = useState(stageOrder);
 
-    useEffect(() => {
-        loadData();
-    }, []);
+    useEffect(() => { loadData(); }, []);
 
     const loadData = async () => {
         try {
@@ -30,22 +27,73 @@ const AdminMatchResults = () => {
         }
     };
 
-    const calculateToto = (home, away) => {
-        if (home > away) return '1';
-        if (away > home) return '2';
-        return '3';
+    const [visibleStage, setVisibleStage] = useState(stageOrder[0]);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    // We only update if the section is occupying the top-ish part of the screen
+                    if (entry.isIntersecting) {
+                        setVisibleStage(entry.target.id);
+                    }
+                });
+            },
+            {
+                // This margin acts like a "trigger zone" 
+                // It looks for elements entering the top 20% of the viewport
+                rootMargin: "-10px 0px -80% 0px",
+                threshold: 0
+            }
+        );
+
+        stageOrder.forEach((stage) => {
+            const el = document.getElementById(stage);
+            if (el) observer.observe(el);
+        });
+
+        return () => observer.disconnect();
+    }, [matches]); // Re-run if matches change to re-observe new elements
+
+    // --- CENTRAL PROCESSING ENGINE ---
+    const processUpdate = (matchId, field, value) => {
+        if (!isAdmin) return;
+
+        const match = matches.find(m => m.id === matchId);
+        if (!match) return;
+
+        let cleanValue;
+        if (field === 'match_toto') {
+            cleanValue = String(value);
+        } else {
+            cleanValue = value === '' ? '' : Math.max(0, parseInt(value) || 0);
+        }
+
+        // Prepare updated object
+        const updatedMatch = { ...match, [field]: cleanValue };
+
+        // Auto-TOTO Logic
+        if (field === 'home_ft' || field === 'away_ft') {
+            const h = parseInt(updatedMatch.home_ft) || 0;
+            const a = parseInt(updatedMatch.away_ft) || 0;
+            updatedMatch.match_toto = h > a ? '1' : a > h ? '2' : '3';
+        }
+
+        // Update UI state
+        setMatches(prev => prev.map(m => m.id === matchId ? updatedMatch : m));
+
+        // Trigger Save
+        autoSaveResult(matchId, updatedMatch);
     };
 
     const autoSaveResult = async (matchId, updatedMatch) => {
-        if (!isAdmin) return; // Prevent non-admins from triggering API calls
-
         setIsSyncing(true);
         const data = {
-            home_ht: updatedMatch.home_ht || 0,
-            away_ht: updatedMatch.away_ht || 0,
-            home_ft: updatedMatch.home_ft || 0,
-            away_ft: updatedMatch.away_ft || 0,
-            match_toto: updatedMatch.match_toto || calculateToto(updatedMatch.home_ft, updatedMatch.away_ft)
+            home_ht: Number(updatedMatch.home_ht) || 0,
+            away_ht: Number(updatedMatch.away_ht) || 0,
+            home_ft: Number(updatedMatch.home_ft) || 0,
+            away_ft: Number(updatedMatch.away_ft) || 0,
+            match_toto: String(updatedMatch.match_toto || '3')
         };
 
         try {
@@ -58,21 +106,13 @@ const AdminMatchResults = () => {
         }
     };
 
-    const handleResultChange = (matchId, field, value) => {
-        if (!isAdmin) return;
-        const numValue = parseInt(value) || 0;
-
-        setMatches(prev => prev.map(m => {
-            if (m.id === matchId) {
-                const updated = { ...m, [field]: numValue };
-                if (field === 'home_ft' || field === 'away_ft') {
-                    updated.match_toto = calculateToto(updated.home_ft, updated.away_ft);
-                }
-                return updated;
-            }
-            return m;
-        }));
+    const handleStep = (matchId, field, delta) => {
+        const match = matches.find(m => m.id === matchId);
+        const currentVal = parseInt(match?.[field]) || 0;
+        processUpdate(matchId, field, currentVal + delta);
     };
+
+    const getTeamCode = (name) => name ? name.substring(0, 3).toUpperCase() : '...';
 
     const groupedMatches = matches.reduce((acc, match) => {
         const stage = match.stage || 'Overig';
@@ -81,21 +121,59 @@ const AdminMatchResults = () => {
         return acc;
     }, {});
 
+    const formatDateTime = (dateStr, isMobile) => {
+        const d = new Date(dateStr);
+        const options = { day: 'numeric', month: isMobile ? 'short' : 'long', timeZone: 'Europe/Amsterdam' };
+        const datePart = d.toLocaleDateString('nl-NL', options);
+        const timePart = d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Amsterdam' });
+        return `${datePart} ${isMobile ? '' : timePart}`;
+    };
+
+    const navStages = [
+        'Groepsfase',
+        'Zestiende Finale',
+        'Achtste Finale',
+        'Kwartfinale',
+        'Halve Finale' // This will now be the last link
+    ];
+
+    const getShortStageName = (name) => {
+        const names = {
+            'Groepsfase': 'Groep',
+            'Zestiende Finale': '1/16',
+            'Achtste Finale': '1/8',
+            'Kwartfinale': '1/4',
+            'Halve Finale': '1/2'
+        };
+        return names[name] || name;
+    };
+
     return (
         <div className="container-centered page-container">
             <header className="page-header">
                 <h1 className="tournament-title">
                     {isAdmin ? "Beheer Uitslagen" : "Officiële Uitslagen"}
                 </h1>
-
                 <div className="filter-container">
-                    {stageOrder.map(stage => (
+                    {navStages.map(stage => (
                         <button
                             key={stage}
-                            className={`filter-block ${activeStages.includes(stage) ? 'active' : ''}`}
-                            onClick={() => setActiveStages(prev => prev.includes(stage) ? prev.filter(s => s !== stage) : [...prev, stage])}
+                            // Use the visibleStage state to highlight the button
+                            className={`filter-block ${visibleStage === stage ? 'active' : ''}`}
+                            onClick={() => {
+                                // If it's the first stage, just scroll to top
+                                if (stage === stageOrder[0]) {
+                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                } else {
+                                    const element = document.getElementById(stage);
+                                    if (element) {
+                                        element.scrollIntoView({ behavior: 'smooth' });
+                                    }
+                                }
+                            }}
                         >
-                            {stage}
+                            <span className="desktop-only">{stage}</span>
+                            <span className="mobile-only">{getShortStageName(stage)}</span>
                         </button>
                     ))}
                 </div>
@@ -112,80 +190,75 @@ const AdminMatchResults = () => {
                             <div className="matches-table-wrapper">
                                 {stageMatches.map(m => (
                                     <div key={m.id} className="match-row-wide">
-                                        <div className="cell-time">
-                                            <div className="date-nl">
-                                                {new Date(m.match_date).toLocaleDateString('nl-NL', {
-                                                    day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Amsterdam'
-                                                })}
+                                        <div className="cell-time desktop-date desktop-only">
+                                            {formatDateTime(m.match_date, false)}
+                                        </div>
+                                        <div className="cell-city desktop-only">{m.match_city}</div>
+
+                                        <div className="mobile-team-container">
+                                            <div className="cell-team">
+                                                <span className="desktop-only">{m.expand?.home_team?.name}</span>
+                                                <span className="mobile-only">{getTeamCode(m.expand?.home_team?.name)}</span>
+                                            </div>
+                                            <span className="mobile-only team-vs">vs</span>
+                                            <div className="cell-team">
+                                                <span className="desktop-only">{m.expand?.away_team?.name}</span>
+                                                <span className="mobile-only">{getTeamCode(m.expand?.away_team?.name)}</span>
                                             </div>
                                         </div>
 
-                                        <div className="cell-city">{m.match_city}</div>
-
-                                        <div className="cell-team text-right">{m.expand?.home_team?.name || '...'}</div>
-                                        <div className="cell-team text-left">{m.expand?.away_team?.name || '...'}</div>
-
                                         <div className="cell-inputs">
-                                            <div className="score-box ht">
-                                                <span className="label-tag">HT</span>
-                                                <input type="number" className="in-ht" disabled={!isAdmin}
-                                                    min="0"
-                                                    placeholder="-"
-                                                    inputMode="numeric"
-                                                    pattern="[0-9]*"
-                                                    onBlur={() => isAdmin && autoSaveResult(m.id, m)}
-                                                    value={m.home_ht ?? ''}
-                                                    onChange={(e) => handleResultChange(m.id, 'home_ht', e.target.value)} />
-                                                <span className="dash">-</span>
-                                                <input type="number" className="in-ht" disabled={!isAdmin}
-                                                    min="0"
-                                                    placeholder="-"
-                                                    inputMode="numeric"
-                                                    pattern="[0-9]*"
-                                                    onBlur={() => isAdmin && autoSaveResult(m.id, m)}
-                                                    value={m.away_ht ?? ''}
-                                                    onChange={(e) => handleResultChange(m.id, 'away_ht', e.target.value)} />
+                                            {/* RUSTSTAND (HT) */}
+                                            <div className="input-group-container">
+                                                <span className="mobile-only group-label">Ruststand</span>
+                                                <div className="score-input-wrapper">
+                                                    <button className="stepper-btn minus mobile-only" onClick={() => handleStep(m.id, 'home_ht', -1)}>−</button>
+                                                    <span className="label-tag desktop-only">HT</span>
+                                                    <input type="number" className="in-ht" value={m.home_ht ?? ''} onChange={(e) => processUpdate(m.id, 'home_ht', e.target.value)} disabled={!isAdmin} />
+                                                    <button className="stepper-btn plus mobile-only" onClick={() => handleStep(m.id, 'home_ht', 1)}>+</button>
+
+                                                    <span className="score-dash">-</span>
+
+                                                    <button className="stepper-btn minus mobile-only" onClick={() => handleStep(m.id, 'away_ht', -1)}>−</button>
+                                                    <input type="number" className="in-ht" value={m.away_ht ?? ''} onChange={(e) => processUpdate(m.id, 'away_ht', e.target.value)} disabled={!isAdmin} />
+                                                    <button className="stepper-btn plus mobile-only" onClick={() => handleStep(m.id, 'away_ht', 1)}>+</button>
+                                                </div>
                                             </div>
 
-                                            <div className="score-box ft">
-                                                <span className="label-tag">FT</span>
-                                                <input type="number" className="in-ft" disabled={!isAdmin}
-                                                    min="0"
-                                                    placeholder="-"
-                                                    inputMode="numeric"
-                                                    pattern="[0-9]*"
-                                                    onBlur={() => isAdmin && autoSaveResult(m.id, m)}
-                                                    value={m.home_ft ?? ''}
-                                                    onChange={(e) => handleResultChange(m.id, 'home_ft', e.target.value)} />
-                                                <span className="colon">:</span>
-                                                <input type="number" className="in-ft" disabled={!isAdmin}
-                                                    min="0"
-                                                    placeholder="-"
-                                                    inputMode="numeric"
-                                                    pattern="[0-9]*"
-                                                    onBlur={() => isAdmin && autoSaveResult(m.id, m)}
-                                                    value={m.away_ft ?? ''}
-                                                    onChange={(e) => handleResultChange(m.id, 'away_ft', e.target.value)} />
+                                            {/* EINDSTAND (FT) */}
+                                            <div className="input-group-container">
+                                                <span className="mobile-only group-label">Eindstand</span>
+                                                <div className="score-input-wrapper">
+                                                    <button className="stepper-btn minus mobile-only" onClick={() => handleStep(m.id, 'home_ft', -1)}>−</button>
+                                                    <span className="label-tag desktop-only">FT</span>
+                                                    <input type="number" className="in-ft" value={m.home_ft ?? ''} onChange={(e) => processUpdate(m.id, 'home_ft', e.target.value)} disabled={!isAdmin} />
+                                                    <button className="stepper-btn plus mobile-only" onClick={() => handleStep(m.id, 'home_ft', 1)}>+</button>
+
+                                                    <span className="score-dash">:</span>
+
+                                                    <button className="stepper-btn minus mobile-only" onClick={() => handleStep(m.id, 'away_ft', -1)}>−</button>
+                                                    <input type="number" className="in-ft" value={m.away_ft ?? ''} onChange={(e) => processUpdate(m.id, 'away_ft', e.target.value)} disabled={!isAdmin} />
+                                                    <button className="stepper-btn plus mobile-only" onClick={() => handleStep(m.id, 'away_ft', 1)}>+</button>
+                                                </div>
                                             </div>
 
-                                            <div className="score-box toto">
-                                                <span className="label-tag">TOTO</span>
-                                                <div className="toto-group">
-                                                    {[1, 3, 2].map((val) => (
-                                                        <button
-                                                            key={val}
-                                                            disabled={!isAdmin}
-                                                            className={`toto-cube ${m.match_toto === String(val) ? 'active' : ''}`}
-                                                            onClick={() => {
-                                                                if (!isAdmin) return;
-                                                                const updated = { ...m, match_toto: String(val) };
-                                                                setMatches(prev => prev.map(match => match.id === m.id ? updated : match));
-                                                                autoSaveResult(m.id, updated);
-                                                            }}
-                                                        >
-                                                            {val === 3 ? 'X' : val}
-                                                        </button>
-                                                    ))}
+                                            {/* TOTO */}
+                                            <div className="input-group-container">
+                                                <span className="mobile-only group-label">TOTO</span>
+                                                <div className="score-input-wrapper">
+                                                    <span className="label-tag toto-label desktop-only">TOTO</span>
+                                                    <div className="toto-group">
+                                                        {[1, 3, 2].map((val) => (
+                                                            <button
+                                                                key={val}
+                                                                className={`toto-cube ${m.match_toto === String(val) ? 'active' : ''}`}
+                                                                onClick={() => processUpdate(m.id, 'match_toto', String(val))}
+                                                                disabled={!isAdmin}
+                                                            >
+                                                                {val === 3 ? 'X' : val}
+                                                            </button>
+                                                        ))}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>

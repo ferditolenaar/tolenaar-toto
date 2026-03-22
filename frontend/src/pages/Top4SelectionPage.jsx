@@ -24,14 +24,13 @@ const Top4SelectionPage = () => {
                     pb.collection('tournaments').getFirstListItem('is_active=true', { requestKey: null })
                 ]);
 
-                // FILTER: Only keep actual countries
-                // This assumes placeholders contain words like 'Group', 'Winner', 'Runner', or 'Plek'
                 const actualCountries = teamList.filter(team => {
                     const name = team.name.toLowerCase();
                     return !name.includes('3e') &&
                         !name.includes('1e') &&
                         !name.includes('2e') &&
                         !name.includes('wedstrijd') &&
+                        !name.includes('nummer') &&
                         !name.includes('winnaar'); // for Dutch placeholders
                 });
 

@@ -11,6 +11,8 @@ html {
   height: 100%;
   background-color: #f8f9fa;
   font-family: 'Inter', sans-serif;
+  scroll-behavior: smooth;
+  scroll-padding-top: 160px;
 }
 
 /* THE SHELL */
@@ -36,27 +38,15 @@ html {
   padding: 0 2rem;
 }
 
-/* NAVBAR */
 .navbar {
-  width: 100%;
-  background: #1a1a1a;
-  color: white;
-  min-height: 64px;
-  /* Changed to min-height so it can grow if links wrap */
-  display: flex;
-  align-items: center;
   position: sticky;
-  /* Useful for long prediction pages */
   top: 0;
-  z-index: 1000;
-}
-
-.nav-inner {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  z-index: 2000;
+  background-color: #1a1a1a;
   width: 100%;
-  /* Changed from 1280px to 100% */
+  min-height: 60px;
+  display: flex;
+  align-items: center;
 }
 
 .nav-brand a {
@@ -67,28 +57,51 @@ html {
   white-space: nowrap;
 }
 
+.nav-inner {
+  display: flex;
+  justify-content: space-between;
+  /* Brand Left, Links Right */
+  align-items: stretch;
+  /* Makes links full height */
+  height: 60px;
+  width: 100%;
+}
+
 .nav-links {
   display: flex;
   gap: 1.5rem;
   align-items: center;
+  /* Or stretch if you want the green bottom bar */
+  height: 100%;
 }
 
-.nav-links a {
-  color: #adb5bd;
+.nav-item {
+  color: #999;
   text-decoration: none;
-  font-weight: 500;
-  transition: 0.2s;
-  white-space: nowrap;
+  padding: 0 15px;
+  /* Slightly more breathing room */
+  display: flex;
+  align-items: center;
+  height: 100%;
+  font-weight: 400;
+  position: relative;
+  transition: color 0.2s ease;
 }
 
-.nav-links a:hover {
-  color: white;
+.nav-item.active::after,.nav-item:hover::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background-color: #28a745;
 }
 
-/* --- HAMBURGER STYLES --- */
+/* --- MOBILE TOGGLE --- */
 .mobile-toggle {
   display: none;
-  /* Hidden on desktop */
+  /* Desktop hidden */
   flex-direction: column;
   justify-content: space-between;
   width: 30px;
@@ -96,8 +109,15 @@ html {
   background: transparent;
   border: none;
   cursor: pointer;
-  padding: 0;
-  z-index: 1001;
+  z-index: 10001;
+}
+
+.bar {
+  width: 100%;
+  height: 3px;
+  background-color: white;
+  border-radius: 10px;
+  transition: all 0.3s ease;
 }
 
 .bar {
@@ -121,6 +141,14 @@ html {
   transform: translateY(-9px) rotate(-45deg);
 }
 
+.text-right {
+  text-align: right;
+}
+
+.text-left {
+  text-align: left;
+}
+
 @media (max-width: 768px) {
   .feature-grid {
     display: flex !important;
@@ -128,59 +156,112 @@ html {
     gap: 1.5rem;
   }
 
-  /* Force "Full Width" cards to actually be 100% width */
   .feature-card,
   .feature-card.full-width {
     grid-column: span 1 !important;
     width: 100% !important;
     padding: 1.5rem !important;
-    /* Slightly tighter padding for small screens */
   }
 
-  /* Standardize Headings across all pages */
   .page-header h1 {
     font-size: 1.4rem !important;
     text-align: center;
   }
 
+
+  .nav-inner {
+    height: 70px !important;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .nav-brand,
   .mobile-toggle {
     display: flex;
-    /* Show on mobile */
+    align-items: center;
+    margin-top: 5px;
   }
 
   .nav-links {
-    position: fixed;
-    top: 64px;
-    /* Matches navbar height */
-    left: -100%;
-    /* Hide off-screen */
-    width: 100%;
-    height: calc(100vh - 64px);
-    background-color: #1a1a1a;
+    display: none;
     flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding-top: 40px;
-    transition: left 0.3s ease;
-    gap: 2rem;
-    z-index: 999;
+    justify-content: flex-start !important;
+    /* Kills hatched margins */
+    align-items: stretch !important;
+    background-color: #1a1a1a;
+    position: fixed;
+    top: 70px;
+    left: 0;
+    width: 100vw;
+    height: calc(100vh - 70px);
+    z-index: 9999;
+    padding: 0 !important;
+    margin: 0 !important;
+    gap: 0;
+    /* Kills space between items */
+    overflow-y: auto;
   }
 
   .nav-links.active {
+    display: flex;
+  }
+
+  /* FIXED: Full Height Mobile Items */
+  .nav-item {
+    width: 100%;
+    height: 60px !important;
+    flex: 0 0 60px !important;
+    padding: 0 25px;
+    margin: 0 !important;
+    border-bottom: 1px solid #2a2a2a;
+    justify-content: flex-start;
+  }
+
+  /* FIXED: Vertical Green Strip (No Gaps) */
+  .nav-item.active::after {
+    width: 6px;
+    height: 100%;
     left: 0;
-    /* Slide in */
+    top: 0;
+    bottom: 0;
+    box-shadow: none;
+    bottom: auto;
   }
 
-  /* Adjust profile bubble for mobile menu */
-  .profile-dropdown {
-    position: static;
-    margin-top: 10px;
-    width: 250px;
-    background: #2a2a2a;
-  }
-
-  .nav-inner {
+  
+  .profile-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* Horizontal Center */
+    justify-content: center;
+    /* Vertical Center */
     width: 100% !important;
-    justify-content: space-between;
+    padding: 20px 0;
+    /* Gives it space at the bottom of the scroll */
+    margin-top: 20px;
+    /* Pushes it away from the last nav-item */
+    background-color: #1a1a1a;
+    margin-left: 0px;
+    ;
+  }
+
+  .profile-bubble {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f39c12;
+    color: white;
+    font-weight: 700;
+    font-size: 1.2rem;
+    /* Remove any margins that might be pushing it off-center */
+    margin: 0 auto !important;
+    cursor: pointer;
+    border: 2px solid rgba(255, 255, 255, 0.1);
   }
 }

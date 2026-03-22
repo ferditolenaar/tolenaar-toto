@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import pb from '../lib/pocketbase';
 import '../Features.css';
 
@@ -8,6 +8,7 @@ const PredictionsPage = () => {
     const [isSyncing, setIsSyncing] = useState(false);
     const [lastSaved, setLastSaved] = useState(null);
     const [syncError, setSyncError] = useState(null);
+    const [errorTrigger, setErrorTrigger] = useState(0)
 
     const stageOrder = ['Groepsfase', 'Zestiende Finale', 'Achtste Finale', 'Kwartfinale', 'Halve Finale', 'Troostfinale', 'Finale'];
     const [activeStages, setActiveStages] = useState(stageOrder);
@@ -21,6 +22,36 @@ const PredictionsPage = () => {
         window.addEventListener('beforeunload', handleBeforeUnload);
         return () => window.removeEventListener('beforeunload', handleBeforeUnload);
     }, [isSyncing]);
+
+    const [visibleStage, setVisibleStage] = useState(stageOrder[0]);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        let stageId = entry.target.id;
+
+                        // Group the last three stages under the 'Halve Finale' highlight
+                        if (['Troostfinale', 'Finale'].includes(stageId)) {
+                            stageId = 'Halve Finale';
+                        }
+
+                        setVisibleStage(stageId);
+                    }
+                });
+            },
+            { rootMargin: "-10px 0px -80% 0px", threshold: 0 }
+        );
+
+        // Observe all stages so we can trigger the highlight shift
+        stageOrder.forEach((stage) => {
+            const el = document.getElementById(stage);
+            if (el) observer.observe(el);
+        });
+
+        return () => observer.disconnect();
+    }, [matches]);
 
     const loadData = async () => {
         try {
@@ -65,30 +96,79 @@ const PredictionsPage = () => {
         return new Date().getTime() < deadline;
     };
 
+    const is00LimitReached = (matchId, stage, h_ht, a_ht) => {
+        //if (Number(h_ht) !== 0 || Number(a_ht) !== 0) return { isLimitReached: false };
+
+        const exemptStages = ['Halve Finale', 'Troostfinale', 'Finale'];
+        if (exemptStages.includes(stage)) return { isLimitReached: false };
+
+        const stageMatches = matches.filter(m => m.stage === stage);
+        const maxAllowed = Math.floor(stageMatches.length / 2);
+
+        const currentCount = stageMatches.filter(m => {
+            if (m.id === matchId) return false;
+            const p = userPredictions[m.id];
+            return p && Number(p.home_ht) === 0 && Number(p.away_ht) === 0;
+        }).length;
+
+        return {
+            isLimitReached: currentCount >= maxAllowed,
+            current: currentCount + (Number(h_ht) === 0 && Number(a_ht) === 0 ? 1 : 0),
+            max: maxAllowed
+        };
+    };
+
+    // --- CENTRAL PROCESSING ENGINE ---
+    const processUpdate = (matchId, field, value) => {
+        const match = matches.find(m => m.id === matchId);
+        if (!match || !isStageEditable(match.stage, matches)) return;
+
+        const currentPred = userPredictions[matchId] || { home_ht: 0, away_ht: 0, home_ft: 0, away_ft: 0, toto: '3' };
+
+        let cleanValue;
+        if (field === 'toto') {
+            cleanValue = String(value); // Keep '1', '2', or '3' as a string
+        } else {
+            cleanValue = value === '' ? '' : Math.max(0, parseInt(value) || 0);
+        }
+
+        const updated = { ...currentPred, [field]: cleanValue };
+
+        // 1. Guard against 0-0 limit
+        const check = is00LimitReached(matchId, match.stage, updated.home_ht, updated.away_ht);
+        if (check.isLimitReached) {
+            setSyncError(`Max ${check.max} x 0-0 ruststanden voor ${match.stage}, nu ${check.current}`);
+            setErrorTrigger(prev => prev + 1);
+            return; // Block the update
+        }
+
+        // 2. TOTO Logic
+        if (field === 'home_ft' || field === 'away_ft') {
+            const h = parseInt(updated.home_ft) || 0;
+            const a = parseInt(updated.away_ft) || 0;
+            updated.toto = h > a ? '1' : a > h ? '2' : '3';
+        }
+
+        // 3. Update State
+        setUserPredictions(prev => ({ ...prev, [matchId]: updated }));
+
+        // 4. Trigger AutoSave (only if it's a valid number or we want to save 0)
+        autoSave(matchId, updated);
+    };
+
     const autoSave = async (matchId, updatedData) => {
         const userId = pb.authStore.model?.id;
         if (!userId) return;
-
-        const match = matches.find(m => m.id === matchId);
-        const zeroCheck = is00LimitReached(matchId, match.stage, updatedData.home_ht, updatedData.away_ht);
-
-        // 1. Guard check (Uses the 0s already in state/updatedData)
-        if (zeroCheck.isLimitReached) {
-            setSyncError(`Max ${zeroCheck.max} 0-0 ruststanden bereikt voor ${match.stage}`);
-            loadData();
-            return;
-        }
 
         setIsSyncing(true);
         try {
             const data = {
                 user: userId,
                 match: matchId,
-                // Everything is a number now, no more ternary null checks
-                pred_home_ht: Number(updatedData.home_ht),
-                pred_away_ht: Number(updatedData.away_ht),
-                pred_home_ft: Number(updatedData.home_ft),
-                pred_away_ft: Number(updatedData.away_ft),
+                pred_home_ht: Number(updatedData.home_ht) || 0,
+                pred_away_ht: Number(updatedData.away_ht) || 0,
+                pred_home_ft: Number(updatedData.home_ft) || 0,
+                pred_away_ft: Number(updatedData.away_ft) || 0,
                 pred_toto: String(updatedData.toto || '3')
             };
 
@@ -96,20 +176,17 @@ const PredictionsPage = () => {
                 await pb.collection('predictions').update(updatedData.id, data);
             } else {
                 const record = await pb.collection('predictions').create(data);
-
-                // Ensure the state gets the new ID so the next save is an update
                 setUserPredictions(prev => ({
                     ...prev,
-                    [matchId]: {
-                        ...updatedData, id: record.id,
-                        home_ht: updatedData.home_ht !== '' ? updatedData.home_ht : 0,
-                        away_ht: updatedData.away_ht !== '' ? updatedData.away_ht : 0,
-                        home_ft: updatedData.home_ft !== '' ? updatedData.home_ft : 0,
-                        away_ft: updatedData.away_ft !== '' ? updatedData.away_ft : 0
-                    }
+                    [matchId]: { ...updatedData, id: record.id }
                 }));
             }
-            setLastSaved(`Laatst opgeslagen: ${new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })} : ${zeroCheck.current}`);
+
+            const match = matches.find(m => m.id === matchId);
+            const check = is00LimitReached(matchId, match.stage, updatedData.home_ht, updatedData.away_ht);
+
+            setLastSaved(`${new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}`);
+            setSyncError(null);
         } catch (err) {
             setSyncError("Fout bij opslaan.");
         } finally {
@@ -118,110 +195,24 @@ const PredictionsPage = () => {
     };
 
     const handleInputChange = (matchId, field, value) => {
-        const finalValue = value === '' ? '' : Math.max(0, parseInt(value) || 0);
-        const match = matches.find(m => m.id === matchId);
+        processUpdate(matchId, field, value);
+    };
 
-        setUserPredictions(prev => {
-            const current = prev[matchId] || { home_ht: '', away_ht: '', home_ft: '', away_ft: '', toto: '3' };
-            const updated = { ...current, [field]: finalValue };
-
-            const zeroCheck = is00LimitReached(matchId, match.stage, updated.home_ht, updated.away_ht);
-
-            // Check if this specific change creates an illegal 0-0
-            if (zeroCheck.isLimitReached) {
-                setSyncError(`Max ${zeroCheck.max} 0-0 ruststanden bereikt voor ${match.stage}`);
-                setTimeout(() => setSyncError(null), 4000);
-                return prev; // DO NOT update the state, effectively "undoing" the type
-            }
-
-            // TOTO Logic (FT only)
-            if (field === 'home_ft' || field === 'away_ft') {
-                const h = parseInt(updated.home_ft);
-                const a = parseInt(updated.away_ft);
-                if (!isNaN(h) && !isNaN(a)) {
-                    updated.toto = h > a ? '1' : a > h ? '2' : '3';
-                }
-            }
-
-            return { ...prev, [matchId]: updated };
-        });
+    const handleStep = (matchId, field, delta) => {
+        const currentVal = parseInt(userPredictions[matchId]?.[field]) || 0;
+        processUpdate(matchId, field, currentVal + delta);
     };
 
     const handleManualSync = async () => {
         if (isSyncing) return;
-        setIsSyncing(true);
         const visibleMatches = matches.filter(m => activeStages.includes(m.stage) && isStageEditable(m.stage, matches));
-        try {
-            for (const m of visibleMatches) {
-                if (userPredictions[m.id]) await autoSave(m.id, userPredictions[m.id]);
-            }
-        } finally {
-            setIsSyncing(false);
+        for (const m of visibleMatches) {
+            if (userPredictions[m.id]) await autoSave(m.id, userPredictions[m.id]);
         }
     };
 
-    const handleStep = (matchId, field, delta) => {
-        if (!isStageEditable(matches.find(m => m.id === matchId)?.stage, matches)) return;
+    const getTeamCode = (name) => name ? name.substring(0, 3).toUpperCase() : '...';
 
-        const current = userPredictions[matchId] || {
-            home_ht: '', away_ht: '',
-            home_ft: 0, away_ft: 0, // Initialize FT to 0 immediately
-            toto: '3'
-        };
-
-        const currentVal = parseInt(userPredictions[matchId]?.[field]) || 0;
-        const newVal = Math.max(0, currentVal + delta); // Prevent negative scores
-
-        // 2. Create the full updated object for this match
-        const updatedMatchData = {
-            ...(userPredictions[matchId] || { home_ft: '', away_ft: '', home_ht: '', away_ht: '', toto: '3' }),
-            [field]: newVal
-        };
-
-        // 3. Update TOTO logic (copying your existing FT logic)
-        if (field === 'home_ft' || field === 'away_ft') {
-            const h = parseInt(updatedMatchData.home_ft);
-            const a = parseInt(updatedMatchData.away_ft);
-            if (!isNaN(h) && !isNaN(a)) {
-                if (h > a) updatedMatchData.toto = '1';
-                else if (a > h) updatedMatchData.toto = '2';
-                else updatedMatchData.toto = '3';
-            }
-        }
-
-        // 4. Update UI State immediately
-        setUserPredictions(prev => ({ ...prev, [matchId]: updatedMatchData }));
-
-        // 5. Trigger the Guarded Save
-        autoSave(matchId, updatedMatchData);
-    };
-
-    const is00LimitReached = (matchId, stage, h_ht, a_ht) => {
-        // Only check if both are explicitly 0
-        if (h_ht !== 0 || a_ht !== 0) return false;
-
-        const exemptStages = ['Halve Finale', 'Troostfinale', 'Finale'];
-        if (exemptStages.includes(stage)) return false;
-
-        const stageMatches = matches.filter(m => m.stage === stage);
-        const maxAllowed = Math.floor(stageMatches.length / 2);
-
-        const currentCount = stageMatches.filter(m => {
-            if (m.id === matchId) return false;
-            const p = userPredictions[m.id];
-            // Ensure we count actual numbers, not empty strings
-            return p && Number(p.home_ht) === 0 && Number(p.away_ht) === 0;
-        }).length;
-
-        return {
-            isLimitReached: currentCount >= maxAllowed,
-            current: currentCount,
-            max: maxAllowed
-        };
-    };
-
-    // Helper formatting functions
-    const getTeamCode = (name) => name ? name.substring(0, 8).toUpperCase() : '...';
     const groupedMatches = matches.reduce((acc, m) => {
         const s = m.stage || 'Overig';
         if (!acc[s]) acc[s] = [];
@@ -231,9 +222,29 @@ const PredictionsPage = () => {
 
     const formatDateTime = (dateStr, isMobile) => {
         const d = new Date(dateStr);
-        const datePart = d.toLocaleDateString('nl-NL', { day: 'numeric', month: isMobile ? 'short' : 'long', timeZone: 'Europe/Amsterdam' });
+        const options = { day: 'numeric', month: isMobile ? 'short' : 'long', timeZone: 'Europe/Amsterdam' };
+        const datePart = d.toLocaleDateString('nl-NL', options);
         const timePart = d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Amsterdam' });
         return `${datePart} ${isMobile ? '' : timePart}`;
+    };
+
+    const navStages = [
+        'Groepsfase',
+        'Zestiende Finale',
+        'Achtste Finale',
+        'Kwartfinale',
+        'Halve Finale' // This will now be the last link
+    ];
+
+    const getShortStageName = (name) => {
+        const names = {
+            'Groepsfase': 'Groep',
+            'Zestiende Finale': '1/16',
+            'Achtste Finale': '1/8',
+            'Kwartfinale': '1/4',
+            'Halve Finale': '1/2'
+        };
+        return names[name] || name;
     };
 
     return (
@@ -241,13 +252,25 @@ const PredictionsPage = () => {
             <header className="page-header">
                 <h1 className="tournament-title">WK 2026 Voorspellen</h1>
                 <div className="filter-container">
-                    {stageOrder.map(stage => (
+                    {navStages.map(stage => (
                         <button
                             key={stage}
-                            className={`filter-block ${activeStages.includes(stage) ? 'active' : ''}`}
-                            onClick={() => setActiveStages(prev => prev.includes(stage) ? prev.filter(s => s !== stage) : [...prev, stage])}
+                            // Use the visibleStage state to highlight the button
+                            className={`filter-block ${visibleStage === stage ? 'active' : ''}`}
+                            onClick={() => {
+                                // If it's the first stage, just scroll to top
+                                if (stage === stageOrder[0]) {
+                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                } else {
+                                    const element = document.getElementById(stage);
+                                    if (element) {
+                                        element.scrollIntoView({ behavior: 'smooth' });
+                                    }
+                                }
+                            }}
                         >
-                            {stage}
+                            <span className="desktop-only">{stage}</span>
+                            <span className="mobile-only">{getShortStageName(stage)}</span>
                         </button>
                     ))}
                 </div>
@@ -260,9 +283,13 @@ const PredictionsPage = () => {
                     if (!stageMatches || !activeStages.includes(stageName)) return null;
 
                     return (
-                        <div key={stageName} className={`stage-group ${isLocked ? 'locked' : ''}`}>
+                        <div
+                            key={stageName}
+                            id={stageName}
+                            className={`stage-group ${isLocked ? 'locked' : ''}`}
+                        >
                             <h2 className="stage-header-title">
-                                {stageName} {isLocked && <span className="lock-icon">🔒 Gesloten</span>}
+                                {stageName} {isLocked && <span className="lock-icon">🔒</span>}
                             </h2>
                             <div className="matches-table-wrapper">
                                 {stageMatches.map(m => (
@@ -273,22 +300,22 @@ const PredictionsPage = () => {
                                         <div className="cell-city desktop-only">{m.match_city}</div>
 
                                         <div className="mobile-team-container">
-                                            <div className="cell-team text-right">
+                                            <div className="cell-team">
                                                 <span className="desktop-only">{m.expand?.home_team?.name || '...'}</span>
                                                 <span className="mobile-only">{getTeamCode(m.expand?.home_team?.name)}</span>
                                             </div>
                                             <span className="mobile-only team-vs">vs</span>
-                                            <div className="cell-team text-left">
+                                            <div className="cell-team">
                                                 <span className="desktop-only">{m.expand?.away_team?.name || '...'}</span>
                                                 <span className="mobile-only">{getTeamCode(m.expand?.away_team?.name)}</span>
                                             </div>
                                         </div>
 
                                         <div className="cell-inputs">
+                                            {/* RUSTSTAND (HT) */}
                                             <div className="input-group-container">
                                                 <span className="mobile-only group-label">Ruststand</span>
                                                 <div className="score-input-wrapper">
-                                                    {/* Home HT */}
                                                     <button className="stepper-btn minus mobile-only" onClick={() => handleStep(m.id, 'home_ht', -1)}>−</button>
                                                     <span className="label-tag desktop-only">HT</span>
                                                     <input
@@ -296,75 +323,66 @@ const PredictionsPage = () => {
                                                         className="in-ht"
                                                         value={userPredictions[m.id]?.home_ht ?? ''}
                                                         onChange={(e) => handleInputChange(m.id, 'home_ht', e.target.value)}
-                                                        onBlur={() => !isLocked && autoSave(m.id, userPredictions[m.id])}
                                                     />
                                                     <button className="stepper-btn plus mobile-only" onClick={() => handleStep(m.id, 'home_ht', 1)}>+</button>
 
                                                     <span className="score-dash">-</span>
 
-                                                    {/* Away HT */}
                                                     <button className="stepper-btn minus mobile-only" onClick={() => handleStep(m.id, 'away_ht', -1)}>−</button>
                                                     <input
                                                         type="number"
                                                         className="in-ht"
                                                         value={userPredictions[m.id]?.away_ht ?? ''}
                                                         onChange={(e) => handleInputChange(m.id, 'away_ht', e.target.value)}
-                                                        onBlur={() => !isLocked && autoSave(m.id, userPredictions[m.id])}
                                                     />
                                                     <button className="stepper-btn plus mobile-only" onClick={() => handleStep(m.id, 'away_ht', 1)}>+</button>
                                                 </div>
                                             </div>
 
+                                            {/* EINDSTAND (FT) */}
                                             <div className="input-group-container">
                                                 <span className="mobile-only group-label">Eindstand</span>
                                                 <div className="score-input-wrapper">
-                                                    <button className="stepper-btn minus mobile-only" onClick={() => {
-                                                        if (isLocked) return;
-                                                        const current = parseInt(userPredictions[m.id]?.home_ft) || 0;
-                                                        const newVal = Math.max(0, current - 1);
-                                                        handleInputChange(m.id, 'home_ft', newVal);
-                                                        autoSave(m.id, { ...userPredictions[m.id], home_ft: newVal });
-                                                    }}>−</button>
+                                                    <button className="stepper-btn minus mobile-only" onClick={() => handleStep(m.id, 'home_ft', -1)}>−</button>
                                                     <span className="label-tag desktop-only">FT</span>
-                                                    <input type="number" className="in-ft" value={userPredictions[m.id]?.home_ft ?? ''} onChange={(e) => handleInputChange(m.id, 'home_ft', e.target.value)} onBlur={() => !isLocked && autoSave(m.id, userPredictions[m.id])} />
-                                                    <button className="stepper-btn plus mobile-only" onClick={() => {
-                                                        if (isLocked) return;
-                                                        const current = parseInt(userPredictions[m.id]?.home_ft) || 0;
-                                                        const newVal = current + 1;
-                                                        handleInputChange(m.id, 'home_ft', newVal);
-                                                        autoSave(m.id, { ...userPredictions[m.id], home_ft: newVal });
-                                                    }}>+</button>
+                                                    <input
+                                                        type="number"
+                                                        className="in-ft"
+                                                        value={userPredictions[m.id]?.home_ft ?? ''}
+                                                        onChange={(e) => handleInputChange(m.id, 'home_ft', e.target.value)}
+                                                    />
+                                                    <button className="stepper-btn plus mobile-only" onClick={() => handleStep(m.id, 'home_ft', 1)}>+</button>
+
                                                     <span className="score-dash">-</span>
-                                                    <button className="stepper-btn minus mobile-only" onClick={() => {
-                                                        if (isLocked) return;
-                                                        const current = parseInt(userPredictions[m.id]?.away_ft) || 0;
-                                                        const newVal = Math.max(0, current - 1);
-                                                        handleInputChange(m.id, 'away_ft', newVal);
-                                                        autoSave(m.id, { ...userPredictions[m.id], away_ft: newVal });
-                                                    }}>−</button>
-                                                    <input type="number" className="in-ft" value={userPredictions[m.id]?.away_ft ?? ''} onChange={(e) => handleInputChange(m.id, 'away_ft', e.target.value)} onBlur={() => !isLocked && autoSave(m.id, userPredictions[m.id])} />
-                                                    <button className="stepper-btn plus mobile-only" onClick={() => {
-                                                        if (isLocked) return;
-                                                        const current = parseInt(userPredictions[m.id]?.away_ft) || 0;
-                                                        const newVal = current + 1;
-                                                        handleInputChange(m.id, 'away_ft', newVal);
-                                                        autoSave(m.id, { ...userPredictions[m.id], away_ft: newVal });
-                                                    }}>+</button>
+
+                                                    <button className="stepper-btn minus mobile-only" onClick={() => handleStep(m.id, 'away_ft', -1)}>−</button>
+                                                    <input
+                                                        type="number"
+                                                        className="in-ft"
+                                                        value={userPredictions[m.id]?.away_ft ?? ''}
+                                                        onChange={(e) => handleInputChange(m.id, 'away_ft', e.target.value)}
+                                                    />
+                                                    <button className="stepper-btn plus mobile-only" onClick={() => handleStep(m.id, 'away_ft', 1)}>+</button>
                                                 </div>
                                             </div>
 
-                                            <div className="score-box toto">
-                                                <span className="label-tag desktop-only">TOTO</span>
-                                                <div className="toto-group">
-                                                    {[1, 3, 2].map((val) => (
-                                                        <button key={val} disabled={isLocked} className={`toto-cube ${userPredictions[m.id]?.toto === String(val) ? 'active' : ''}`}
-                                                            onClick={() => {
-                                                                if (isLocked) return;
-                                                                const updated = { ...(userPredictions[m.id] || {}), toto: String(val) };
-                                                                setUserPredictions(prev => ({ ...prev, [m.id]: updated }));
-                                                                autoSave(m.id, updated);
-                                                            }}>{val === 3 ? 'X' : val}</button>
-                                                    ))}
+                                            {/* TOTO BOX */}
+                                            <div className="input-group-container">
+                                                <span className="mobile-only group-label">TOTO</span>
+                                                <div className="score-input-wrapper">
+                                                    <span className="label-tag toto-label desktop-only">TOTO</span>
+                                                    <div className="toto-group">
+                                                        {[1, 3, 2].map((val) => (
+                                                            <button
+                                                                key={val}
+                                                                disabled={isLocked}
+                                                                className={`toto-cube ${userPredictions[m.id]?.toto === String(val) ? 'active' : ''}`}
+                                                                onClick={() => handleInputChange(m.id, 'toto', String(val))}
+                                                            >
+                                                                {val === 3 ? 'X' : val}
+                                                            </button>
+                                                        ))}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -376,7 +394,7 @@ const PredictionsPage = () => {
                 })}
             </div>
 
-            <div className={`floating-sync-bar ${syncError ? 'sync-error' : isSyncing ? 'syncing' : 'synced'}`} onClick={handleManualSync}>
+            <div key={errorTrigger} className={`floating-sync-bar ${syncError ? 'sync-error sync-error-shake' : isSyncing ? 'syncing' : 'synced'}`} onClick={handleManualSync}>
                 <div className="sync-content">
                     {syncError ? (
                         <><span className="sync-icon">⚠️</span><span>{syncError}</span></>

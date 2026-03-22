@@ -14,8 +14,20 @@ export default function AdminTools() {
     // 1. Fetch teams to populate the admin dropdowns
     useEffect(() => {
         const loadTeams = async () => {
-            const records = await pb.collection('teams').getFullList({ sort: 'name' });
-            setTeams(records);
+            const teamList = await pb.collection('teams').getFullList({ sort: 'name' });
+
+            const actualCountries = teamList.filter(team => {
+                const name = team.name.toLowerCase();
+                return !name.includes('3e') &&
+                    !name.includes('1e') &&
+                    !name.includes('2e') &&
+                    !name.includes('wedstrijd') &&
+                    !name.includes('nummer') &&
+                    !name.includes('winnaar'); // for Dutch placeholders
+            });
+
+            setTeams(actualCountries);
+
         };
         loadTeams();
     }, []);
