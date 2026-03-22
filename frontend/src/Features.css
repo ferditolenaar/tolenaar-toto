@@ -450,7 +450,7 @@
     font-weight: 600;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     transition: all 0.3s ease;
-    z-index: 9999;
+    z-index: 1500;
 }
 
 .floating-sync-bar.syncing {
