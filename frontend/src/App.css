@@ -307,7 +307,7 @@ html {
   text-align: left;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
 
   /* Vertical stacking for the text */
   .brand-text {
