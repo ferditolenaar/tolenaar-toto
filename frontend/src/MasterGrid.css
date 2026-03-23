@@ -1,0 +1,191 @@
+/* --- 1. Global Viewport Lockdown --- */
+/* This prevents the whole page from scrolling so only the table moves */
+html, body {
+    height: 100%;
+    margin: 0;
+    overflow-x: hidden; 
+}
+
+.matrix-main-layout {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 70px); /* Full height minus DeRoTo Navbar */
+    width: 100vw;
+    background: #f8f9fa;
+}
+
+/* --- 2. Compact Header & Search --- */
+.matrix-header-compact {
+    padding: 10px 0 0 0 !important;
+    flex-shrink: 0;
+    background: #f8f9fa;
+    text-align: center;
+}
+
+.matrix-header-compact h1 {
+    margin: 0 0 10px 0;
+    font-size: 1.8rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.matrix-controls-centered {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 15px;
+}
+
+.search-wrapper-centered {
+    width: 100%;
+    max-width: 400px;
+}
+
+.matrix-search-input {
+    width: 100%;
+    padding: 10px 20px;
+    border-radius: 50px;
+    border: 1px solid #ddd;
+    font-size: 0.9rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    outline: none;
+}
+
+.matrix-search-input:focus {
+    border-color: #00d4ff;
+}
+
+.matrix-scroll-container {
+    flex-grow: 1;
+    overflow: auto;
+    background: white;
+    position: relative;
+    /* CRITICAL: Remove all padding/margins that cause the "leak" */
+    padding: 0 !important; 
+    margin: 0 !important;
+    border: 1px solid #eee;
+}
+
+/* Ensure the table itself fills the space without gaps */
+.master-matrix {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: max-content;
+    margin: 0;
+}
+
+.matrix-scroll-container.tournament-card::before {
+    content: "";
+    position: sticky;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 6px;
+    background: linear-gradient(90deg, #007bff, #dc3545, #ffc107, #28a745);
+    z-index: 2000;
+    display: block;
+}
+
+.master-matrix {
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: fixed;
+    width: max-content; 
+}
+
+.matrix-header-cell {
+    position: sticky;
+    top: 6px;
+    left: 0;
+    background: #f1f3f5 !important;
+    z-index: 1500;
+    font-weight: 900;
+    text-align: center;
+    border-bottom: 2px solid #dee2e6;
+    border-right: 2px solid #dee2e6;
+}
+
+.user-header {
+    position: sticky;
+    top: 6px;
+    background: #2c3e50 !important;
+    color: #00d4ff;
+    z-index: 1000;
+    width: 90px;
+    min-width: 90px;
+    padding: 12px 0;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-align: center;
+    border-bottom: 2px solid #34495e;
+    border-right: 1px solid #34495e;
+}
+
+.sticky-col.match-cell {
+    position: sticky;
+    left: 0;
+    background: #f8f9fa !important;
+    z-index: 500;
+    width: 130px;
+    padding: 10px;
+    border-right: 2px solid #dee2e6;
+    border-bottom: 1px solid #eee;
+}
+
+.pred-cell-matrix {
+    width: 90px;
+    text-align: center;
+    vertical-align: middle;
+    padding: 8px 0;
+}
+
+.matrix-score-grid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.score-row {
+    display: flex;
+    gap: 6px;
+}
+
+.is-correct {
+    background: #28a745 !important;
+}
+
+/* The Toto Marker */
+.s-toto {
+    font-size: 0.9rem;
+    font-weight: 900;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.s-toto.marker-correct {
+    background: rgba(40, 167, 69, 0.1);
+    border: 2px solid #28a745;
+    border-radius: 50%;
+    color: #28a745;
+}
+
+.marker-wrong {
+    color: #dc3545;
+    opacity: 0.4;
+}
+
+/* Match info inside sticky col */
+.matrix-match-info {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.8rem;
+    gap: 2px;
+}
+
+.m-code { font-weight: 800; }
+.m-res { color: #007bff; font-weight: 900; font-size: 0.75rem; }

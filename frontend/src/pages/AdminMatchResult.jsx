@@ -152,7 +152,7 @@ const AdminMatchResults = () => {
 
     return (
         <div className="container-centered page-container">
-            <header className="page-header">
+            <header className="page-header tournament-theme">
                 <h1 className="tournament-title">
                     {isAdmin ? "Beheer Uitslagen" : "Officiële Uitslagen"}
                 </h1>

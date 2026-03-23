@@ -4,6 +4,7 @@ import StartPage from './pages/StartPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import Predictions from './pages/Predictions';
+import MasterMatrix from './pages/MasterMatrix';
 import AdminPage from './pages/AdminTools';
 import AdminMatchResults from './pages/AdminMatchResult';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -23,6 +24,7 @@ function App() {
           <Route path="/voorspellen" element={<ProtectedRoute><Predictions /></ProtectedRoute>} />
           <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
           <Route path="/uitslagen" element={<ProtectedRoute><AdminMatchResults /></ProtectedRoute>} />
+          <Route path="/overzicht" element={<ProtectedRoute><MasterMatrix /></ProtectedRoute>} />
           <Route path="/stand" element={<ProtectedRoute><LeaderboardPage /></ProtectedRoute>} />
           <Route path="/top4" element={<ProtectedRoute><Top4SelectionPage /></ProtectedRoute>} />
         </Route>

@@ -189,7 +189,7 @@ export default function AdminTools() {
 
     return (
         <div className="container-centered page-container">
-            <header className="page-header">
+            <header className="page-header tournament-theme">
                 <h1>Admin Tools</h1>
                 <p>Status: <strong style={{ color: status.includes('Error') ? '#dc3545' : '#28a745' }}>{status}</strong></p>
             </header>

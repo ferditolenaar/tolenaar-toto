@@ -155,7 +155,6 @@ export default function StartPage() {
 
   return (
     <div className="container-centered page-container">
-      {/* 1. Branded Page Header */}
       <header className="page-header tournament-theme">
         <h1>WK 2026 TOTO</h1>
         <p>Voorspel de uitslagen van het grootste sportevenement ter wereld en win!</p>

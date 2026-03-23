@@ -164,7 +164,7 @@ const LeaderboardPage = () => {
 
     return (
         <div className="container-centered page-container">
-            <header className="page-header">
+            <header className="page-header tournament-theme">
                 <h1 className="tournament-title">Klassement</h1>
                 <p className="admin-subtitle">Wie staat er bovenaan in de DeRoTo pool?</p>
             </header>

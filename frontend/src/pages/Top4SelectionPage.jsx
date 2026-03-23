@@ -142,7 +142,7 @@ const Top4SelectionPage = () => {
 
     return (
         <div className="container-centered page-container">
-            <header className="page-header">
+            <header className="page-header tournament-theme">
                 <h1 className="tournament-title">Top 4 Voorspellen</h1>
                 <p className="admin-subtitle">Onderdeel C: Kies twee keer de top 4: voor en tijdens het toernooi</p>
             </header>
