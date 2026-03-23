@@ -13,6 +13,7 @@ html {
   font-family: 'Inter', sans-serif;
   scroll-behavior: smooth;
   scroll-padding-top: 160px;
+  overflow-x: hidden;
 }
 
 /* THE SHELL */
@@ -42,56 +43,48 @@ html {
 .navbar {
   position: sticky;
   top: 0;
-  z-index: 2000;
+  z-index: 5100;
   background-color: #1a1a1a;
   width: 100%;
   height: 70px;
   display: flex;
   align-items: center;
-  overflow: hidden;
   padding-top: 0;
   padding-bottom: 0;
 }
 
-/* THE LEFT RIBBON (Blue/Red/Yellow Sweep) */
+/* THE LEFT SIDE: Sharp Vector Ribbons */
 .navbar::before {
   content: "";
   position: absolute;
-  left: -50px;
-  /* Pull left to hide the straight edge */
   top: 0;
-  width: 300px;
+  left: -20px;
+  width: 50%;
   height: 100%;
-  /* Drawing the 2026 stripes manually with a linear gradient */
   background: linear-gradient(115deg,
-      #007bff 20%,
-      #dc3545 20.5%, #dc3545 40%,
-      #ffc107 40.5%, #ffc107 60%,
-      transparent 60.5%);
-  transform: skewX(-25deg);
-  /* Creates that "sweeping" motion */
-  opacity: 0.8;
+      #007bff 0%, #007bff 15%,
+      #dc3545 15%, #dc3545 30%,
+      #ffc107 30%, #ffc107 45%,
+      transparent 45%);
   z-index: 1;
-  /* Sits behind the logo */
+  transform: skewX(-15deg);
 }
 
-/* THE RIGHT RIBBON (Green/Blue/Yellow Sweep) */
+/* THE RIGHT SIDE: Sharp Vector Ribbons */
 .navbar::after {
   content: "";
   position: absolute;
-  right: -50px;
   top: 0;
-  width: 250px;
+  right: -20px;
+  width: 45%;
   height: 100%;
   background: linear-gradient(-115deg,
-      #28a745 20%,
-      #007bff 20.5%, #007bff 40%,
-      #ffc107 40.5%, #ffc107 60%,
-      transparent 60.5%);
-  transform: skewX(25deg);
-  opacity: 0.8;
+      #28a745 0%, #28a745 15%,
+      #007bff 15%, #007bff 30%,
+      #ffc107 30%, #ffc107 45%,
+      transparent 45%);
   z-index: 1;
-  /* Sits behind the profile bubble */
+  transform: skewX(15deg);
 }
 
 .nav-brand a {
@@ -107,7 +100,13 @@ html {
 .nav-links {
   position: relative;
   z-index: 1002;
-  /* Must be higher than the ribbon z-index (1001) */
+}
+
+.nav-links {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  height: 100%;
 }
 
 /* Container for logo + text */
@@ -142,19 +141,12 @@ html {
 }
 
 .brand-subtitle {
-  color: #ffc107;
-  /* Your gold color */
-  font-size: 1rem;
-  font-weight: 500;
-  letter-spacing: 1px;
-}
-
-.nav-links {
-  display: flex;
-  gap: 1.5rem;
-  align-items: center;
-  /* Or stretch if you want the green bottom bar */
-  height: 100%;
+  color: #00d4ff;
+  /* A vibrant, high-contrast electric blue */
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
 }
 
 .nav-item {
@@ -182,41 +174,6 @@ html {
   background-color: #28a745;
   /* Optional: keeps it sharp against the black */
   z-index: 10;
-}
-
-/* --- THE LEFT RIBBON --- */
-.navbar::before {
-  left: 0;
-  width: 250px;
-  /* How far the pattern extends left of the logo */
-
-  /* ADD COLOR STREAKS (Inspired by image_7.png and image_12.png) */
-  box-shadow:
-    -50px 0 0 0 #007bff,
-    /* Electric Blue streak */
-    -100px 0 0 0 #dc3545,
-    /* Deep Red streak */
-    -150px 0 0 0 #ffc107;
-  /* Radiant Yellow streak */
-
-  /* THE "SWEEP" ANGLE: Makes it dynamic */
-  transform: skewY(-5deg) translateX(-20px);
-}
-
-/* --- THE RIGHT RIBBON --- */
-.navbar::after {
-  right: 0;
-  width: 200px;
-  /* Pattern extends right of the nav */
-
-  /* COLOR STREAKS (Reverse pattern for symmetry) */
-  box-shadow:
-    50px 0 0 0 #007bff,
-    100px 0 0 0 #ffc107,
-    150px 0 0 0 #dc3545;
-
-  /* SKEW THE OTHER WAY for a balanced, symmetrical look */
-  transform: skewY(5deg) translateX(20px);
 }
 
 /* Ensure these stay on top of the colorful ribbons */
@@ -267,7 +224,7 @@ html {
   background: transparent;
   border: none;
   cursor: pointer;
-  z-index: 10001;
+  z-index: 3000;
 }
 
 .bar {
@@ -307,7 +264,59 @@ html {
   text-align: left;
 }
 
+
+.profile-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  height: 100%;
+  margin-left: 10px;
+}
+
+.profile-bubble {
+  width: 40px;
+  height: 40px;
+  background: #dc3545 !important;
+  /* FIFA Red */
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.2s ease;
+}
+
+.profile-bubble:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: scale(1.05);
+}
+
+.profile-dropdown {
+  position: absolute;
+  top: 60px;
+  /* Sits just below the bubble */
+  right: 0;
+  background: #2c3e50;
+  border: 1px solid #34495e;
+  border-radius: 8px;
+  width: 200px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  padding: 10px 0;
+  z-index: 9999 !important;
+}
+
 @media (max-width: 1024px) {
+
+  .profile-container {
+    align-items: normal;
+    margin-top: 20px;
+  }
 
   /* Vertical stacking for the text */
   .brand-text {
@@ -362,7 +371,6 @@ html {
     display: none;
     flex-direction: column;
     justify-content: flex-start !important;
-    /* Kills hatched margins */
     align-items: stretch !important;
     background-color: #1a1a1a;
     position: fixed;
@@ -374,7 +382,6 @@ html {
     padding: 0 !important;
     margin: 0 !important;
     gap: 0;
-    /* Kills space between items */
     overflow-y: auto;
   }
 
@@ -402,40 +409,5 @@ html {
     bottom: 0;
     box-shadow: none;
     bottom: auto;
-  }
-
-
-  .profile-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    /* Horizontal Center */
-    justify-content: center;
-    /* Vertical Center */
-    width: 100% !important;
-    padding: 20px 0;
-    /* Gives it space at the bottom of the scroll */
-    margin-top: 20px;
-    /* Pushes it away from the last nav-item */
-    background-color: #1a1a1a;
-    margin-left: 0px;
-    ;
-  }
-
-  .profile-bubble {
-    width: 55px;
-    height: 55px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #f39c12;
-    color: white;
-    font-weight: 700;
-    font-size: 1.2rem;
-    /* Remove any margins that might be pushing it off-center */
-    margin: 0 auto !important;
-    cursor: pointer;
-    border: 2px solid rgba(255, 255, 255, 0.1);
   }
 }

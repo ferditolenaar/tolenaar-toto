@@ -12,7 +12,7 @@
 .page-header {
     position: sticky;
     top: 0;
-    z-index: 1000;
+    z-index: 100;
     padding-bottom: 10px;
 }
 
@@ -21,7 +21,7 @@
     position: sticky;
     top: 80px;
     /* Adjust this to match the height of your .page-header */
-    z-index: 999;
+    z-index: 100;
     padding: 10px 0;
     display: flex;
     gap: 8px;
@@ -768,55 +768,6 @@
     padding-left: 10px;
 }
 
-.profile-container {
-    position: relative;
-    margin-left: 20px;
-}
-
-.profile-bubble {
-    width: 40px;
-    height: 40px;
-    background: #f39c12;
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    /* THE FIXES: */
-    font-size: 0.85rem;
-    /* Slightly smaller font helps them fit */
-    font-weight: 600;
-    /* Bold makes them clear even when tight */
-    letter-spacing: 1px;
-    /* Pulls the letters closer together */
-    padding: 0;
-    /* Ensure no internal padding is pushing them */
-
-    cursor: pointer;
-    border: 2px solid transparent;
-    transition: all 0.2s ease;
-}
-
-.profile-bubble:hover {
-    border-color: rgba(255, 255, 255, 0.5);
-    transform: scale(1.05);
-}
-
-.profile-dropdown {
-    position: absolute;
-    top: 50px;
-    right: 0;
-    background: #2c3e50;
-    /* Match your header dark color */
-    border: 1px solid #34495e;
-    border-radius: 8px;
-    width: 200px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-    padding: 10px 0;
-    z-index: 1000;
-}
-
 .dropdown-header {
     padding: 10px 15px;
     display: flex;
@@ -1291,7 +1242,6 @@
         overflow-x: hidden;
         /* We might not even need to scroll now! */
     }
-
 
     .filter-container::-webkit-scrollbar {
         display: none;
