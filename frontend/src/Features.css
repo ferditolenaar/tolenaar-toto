@@ -41,12 +41,12 @@
 
 /* Add spacing between major sections */
 .section-spacing {
-    margin-top: 2rem !important;
-    margin-bottom: 2rem !important;
+    margin-top: 0.3rem !important;
+    margin-bottom: 0.5rem !important;
 }
 
 .section-spacing-compact {
-    margin: 1.5rem 0;
+    margin: 0.5rem 0;
 }
 
 /* 2. Create a solid 'buffer' at the top of the sticky header */
