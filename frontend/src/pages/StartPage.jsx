@@ -28,7 +28,7 @@ export default function StartPage() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        //const today = new Date();
+        const today = new Date();
         // test at very start of groepfase: const today = new Date('2026-06-11T19:00:00Z');
         //const today = new Date('2026-06-11T18:30:00Z');
         // test during groepfase: const today = new Date('2026-11-25T12:00:00');
@@ -44,7 +44,7 @@ export default function StartPage() {
         // test right after kwart: const today = new Date('2026-12-15T12:00:00');
         //const today = new Date('2026-07-12T03:00:00Z');
         // test right after halve: const today = new Date('2026-12-15T12:00:00');
-        const today = new Date('2026-07-15T22:00:00Z');
+        //const today = new Date('2026-07-15T22:00:00Z');
         const todayTime = today.getTime();
         const userId = pb.authStore.model?.id;
 
