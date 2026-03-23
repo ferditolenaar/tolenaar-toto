@@ -1,6 +1,9 @@
+/* --- Global Container & Sticky Fixes --- */
 .page-container {
-    padding: 3rem 0;
+    padding: 0 1.5rem 3rem 1.5rem !important; 
     width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
     display: flex;
     flex-direction: column;
 }
@@ -34,11 +37,201 @@
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-/* Visibility Fix */
+/* --- Tournament Brand Styling --- */
+
+/* Add spacing between major sections */
+.section-spacing {
+    margin-top: 2rem !important;
+    margin-bottom: 2rem !important;
+}
+
+.section-spacing-compact {
+    margin: 1.5rem 0;
+}
+
+/* 2. Create a solid 'buffer' at the top of the sticky header */
+.page-header.tournament-theme {
+    text-align: center;
+    padding: 1rem 1rem 0.5rem 1rem; 
+    background: #f8f9fa; /* Solid color hides the scrolling text */
+    margin-bottom: 0.5rem;
+    
+    position: sticky;
+    top: 70px; /* Sits flush against the navbar */
+    z-index: 100;
+}
+
+.page-header.tournament-theme::before {
+    content: "";
+    position: absolute;
+    top: -5px; /* Moves it up into that gap area */
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background: #f8f9fa; /* Or whatever your page background color is */
+}
+
 .page-header h1 {
+    font-size: 1.8rem;
+    /* Professional and compact */
+    margin: 2px 0;
+    font-weight: 900;
     color: #1a1a1a;
-    font-size: 1.6rem;
+    text-transform: uppercase;
+}
+
+.header-brand-tag {
+    font-size: 0.7rem;
     font-weight: 800;
+    letter-spacing: 1.5px;
+    color: #007bff;
+    margin-bottom: 0;
+}
+
+/* --- Unified Action Center --- */
+.action-center {
+    padding: 1.2rem !important;
+    background: #fff;
+    margin-bottom: 1.5rem;
+}
+
+.action-grid {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.vertical-divider {
+    width: 1px;
+    height: 40px;
+    background: #eee;
+}
+
+.card-header-sm h3 {
+    font-size: 0.95rem;
+    margin-bottom: 2px;
+}
+
+.status-txt {
+    font-size: 0.8rem;
+    color: #666;
+    margin-bottom: 8px;
+}
+
+/* --- Progress Bar --- */
+.progress-container {
+    width: 100%;
+    height: 6px;
+    background: #f0f0f0;
+    border-radius: 3px;
+    margin: 8px 0;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: #28a745;
+    transition: width 0.5s ease;
+}
+
+/* Smaller Buttons for the Grid */
+.card-action-btn-sm {
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-decoration: none;
+    text-align: center;
+}
+
+/* --- Tournament Card (No Hover Movement) --- */
+.tournament-card {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #eee !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+    padding: 1.5rem !important; /* Reduced from 2.5rem */
+    transition: none; /* Removed the hover transform */
+}
+
+/* The "Ribbon" accent stays */
+.tournament-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background: linear-gradient(90deg, #007bff, #dc3545, #ffc107, #28a745);
+}
+
+/* --- Leaderboard Medals (Restored) --- */
+.mini-row:nth-child(1) .mini-rank { color: #FFD700; font-size: 1.2rem; } 
+.mini-row:nth-child(2) .mini-rank { color: #C0C0C0; font-size: 1.2rem; } 
+.mini-row:nth-child(3) .mini-rank { color: #CD7F32; font-size: 1.2rem; } 
+
+.mini-row:nth-child(1) .mini-rank::after { content: "🥇"; margin-left: 4px; }
+.mini-row:nth-child(2) .mini-rank::after { content: "🥈"; margin-left: 4px; }
+.mini-row:nth-child(3) .mini-rank::after { content: "🥉"; margin-left: 4px; }
+
+/* Clean up the rank number if using emojis */
+.mini-rank {
+    font-weight: 800;
+    min-width: 45px;
+    display: inline-block;
+}
+
+/* Badges */
+.badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    background: #e9ecef;
+    color: #495057;
+    margin-bottom: 1rem;
+}
+
+.badge.pulse {
+    background: #28a745;
+    color: white;
+    animation: pulse-green 2s infinite;
+}
+
+@keyframes pulse-green {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7);
+    }
+
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 10px rgba(40, 167, 69, 0);
+    }
+
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
+    }
+}
+
+/* Mini Row Clean-up */
+.mini-row,
+.mini-match-row {
+    padding: 1rem 0;
+    border-bottom: 1px solid #f1f3f5;
+    display: flex;
+    align-items: center;
+}
+
+.vs {
+    font-weight: 600;
+    color: #666;
+    margin: 0 5px;
+    font-size: 0.8rem;
 }
 
 .feature-grid {
@@ -94,19 +287,6 @@
     align-items: center;
     padding: 12px 0;
     border-bottom: 1px solid #f0f0f0;
-}
-
-.mini-rank {
-    width: 24px;
-    height: 24px;
-    background: #eee;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.75rem;
-    font-weight: bold;
-    margin-right: 12px;
 }
 
 .mini-name {
@@ -1283,6 +1463,21 @@
         /* Prevents iOS from zooming in on focus */
         padding: 12px;
     }
+
+    .action-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .vertical-divider {
+        display: none;
+    }
+
+    .stepper-btn {
+        width: 35px;
+        /* Larger hit area for thumbs */
+        height: 45px;
+        /* Matches mobile input height */
+    }
 }
 
 .stepper-btn:hover:not(:disabled) {
@@ -1299,14 +1494,4 @@
 .stepper-btn:disabled {
     opacity: 0.3;
     cursor: not-allowed;
-}
-
-/* Ensure the wrapper looks like a single unit on mobile */
-@media (max-width: 768px) {
-    .stepper-btn {
-        width: 35px;
-        /* Larger hit area for thumbs */
-        height: 45px;
-        /* Matches mobile input height */
-    }
 }

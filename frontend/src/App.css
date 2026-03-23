@@ -38,15 +38,60 @@ html {
   padding: 0 2rem;
 }
 
+/* THE PARENT */
 .navbar {
   position: sticky;
   top: 0;
   z-index: 2000;
   background-color: #1a1a1a;
   width: 100%;
-  min-height: 60px;
+  height: 70px;
   display: flex;
   align-items: center;
+  overflow: hidden;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/* THE LEFT RIBBON (Blue/Red/Yellow Sweep) */
+.navbar::before {
+  content: "";
+  position: absolute;
+  left: -50px;
+  /* Pull left to hide the straight edge */
+  top: 0;
+  width: 300px;
+  height: 100%;
+  /* Drawing the 2026 stripes manually with a linear gradient */
+  background: linear-gradient(115deg,
+      #007bff 20%,
+      #dc3545 20.5%, #dc3545 40%,
+      #ffc107 40.5%, #ffc107 60%,
+      transparent 60.5%);
+  transform: skewX(-25deg);
+  /* Creates that "sweeping" motion */
+  opacity: 0.8;
+  z-index: 1;
+  /* Sits behind the logo */
+}
+
+/* THE RIGHT RIBBON (Green/Blue/Yellow Sweep) */
+.navbar::after {
+  content: "";
+  position: absolute;
+  right: -50px;
+  top: 0;
+  width: 250px;
+  height: 100%;
+  background: linear-gradient(-115deg,
+      #28a745 20%,
+      #007bff 20.5%, #007bff 40%,
+      #ffc107 40.5%, #ffc107 60%,
+      transparent 60.5%);
+  transform: skewX(25deg);
+  opacity: 0.8;
+  z-index: 1;
+  /* Sits behind the profile bubble */
 }
 
 .nav-brand a {
@@ -57,14 +102,51 @@ html {
   white-space: nowrap;
 }
 
-.nav-inner {
+/* Ensure your text and links are above the ribbons */
+.nav-brand,
+.nav-links {
+  position: relative;
+  z-index: 1002;
+  /* Must be higher than the ribbon z-index (1001) */
+}
+
+/* Container for logo + text */
+.brand-link {
   display: flex;
-  justify-content: space-between;
-  /* Brand Left, Links Right */
-  align-items: stretch;
-  /* Makes links full height */
-  height: 60px;
-  width: 100%;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+
+/* The Trophy Image */
+.brand-logo {
+  height: 65px;
+  /* Scale to fit comfortably in 70px navbar */
+  width: auto;
+  object-fit: contain;
+  mix-blend-mode: screen;
+}
+
+/* Vertical stacking for the text */
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.4;
+}
+
+.brand-name {
+  color: white;
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.brand-subtitle {
+  color: #ffc107;
+  /* Your gold color */
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 1px;
 }
 
 .nav-links {
@@ -79,7 +161,82 @@ html {
   color: #999;
   text-decoration: none;
   padding: 0 15px;
-  /* Slightly more breathing room */
+  display: flex;
+  /* Centering the text vertically while the container is 100% height */
+  align-items: center;
+  height: 100%;
+  position: relative;
+  transition: color 0.2s ease;
+}
+
+/* The Green Bar */
+.nav-item.active::after,
+.nav-item:hover::after {
+  content: '';
+  position: absolute;
+  /* This will now sit at the very bottom of the 70px bar */
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background-color: #28a745;
+  /* Optional: keeps it sharp against the black */
+  z-index: 10;
+}
+
+/* --- THE LEFT RIBBON --- */
+.navbar::before {
+  left: 0;
+  width: 250px;
+  /* How far the pattern extends left of the logo */
+
+  /* ADD COLOR STREAKS (Inspired by image_7.png and image_12.png) */
+  box-shadow:
+    -50px 0 0 0 #007bff,
+    /* Electric Blue streak */
+    -100px 0 0 0 #dc3545,
+    /* Deep Red streak */
+    -150px 0 0 0 #ffc107;
+  /* Radiant Yellow streak */
+
+  /* THE "SWEEP" ANGLE: Makes it dynamic */
+  transform: skewY(-5deg) translateX(-20px);
+}
+
+/* --- THE RIGHT RIBBON --- */
+.navbar::after {
+  right: 0;
+  width: 200px;
+  /* Pattern extends right of the nav */
+
+  /* COLOR STREAKS (Reverse pattern for symmetry) */
+  box-shadow:
+    50px 0 0 0 #007bff,
+    100px 0 0 0 #ffc107,
+    150px 0 0 0 #dc3545;
+
+  /* SKEW THE OTHER WAY for a balanced, symmetrical look */
+  transform: skewY(5deg) translateX(20px);
+}
+
+/* Ensure these stay on top of the colorful ribbons */
+.nav-inner {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  height: 100%;
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.nav-item {
+  color: #999;
+  text-decoration: none;
+  padding: 0 15px;
   display: flex;
   align-items: center;
   height: 100%;
@@ -88,7 +245,8 @@ html {
   transition: color 0.2s ease;
 }
 
-.nav-item.active::after,.nav-item:hover::after {
+.nav-item.active::after,
+.nav-item:hover::after {
   content: '';
   position: absolute;
   bottom: 0;
@@ -150,6 +308,23 @@ html {
 }
 
 @media (max-width: 768px) {
+
+  /* Vertical stacking for the text */
+  .brand-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1;
+  }
+
+  /* The Trophy Image */
+  .brand-logo {
+    height: 55px;
+    /* Scale to fit comfortably in 70px navbar */
+    width: auto;
+    object-fit: contain;
+    mix-blend-mode: screen;
+  }
+
   .feature-grid {
     display: flex !important;
     flex-direction: column !important;
@@ -167,7 +342,6 @@ html {
     font-size: 1.4rem !important;
     text-align: center;
   }
-
 
   .nav-inner {
     height: 70px !important;
@@ -230,7 +404,7 @@ html {
     bottom: auto;
   }
 
-  
+
   .profile-container {
     display: flex;
     flex-direction: column;

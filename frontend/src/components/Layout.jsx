@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Outlet, NavLink, Link, useNavigate, useLocation } from 'react-router-dom'; // Added NavLink
 import pb from '../lib/pocketbase';
 import '../Features.css';
+import trophyLogo from '../assets/logo.png';
 
 export default function Layout() {
   const [isOpen, setIsOpen] = useState(false);
@@ -57,7 +58,20 @@ export default function Layout() {
         <div className="container-centered nav-inner">
 
           <div className="nav-brand">
-            <Link to="/">DeRoTo</Link>
+            <Link to="/" className="brand-link">
+              {/* The Trophy Logo */}
+              <img
+                src={trophyLogo}
+                alt="FIFA Trophy"
+                className="brand-logo"
+              />
+
+              {/* The Text Group */}
+              <div className="brand-text">
+                <span className="brand-name">DeRoTo</span>
+                <span className="brand-subtitle">WORLD CUP 2026</span>
+              </div>
+            </Link>
           </div>
 
           {/* This block handles BOTH Desktop horizontal links and Mobile vertical menu */}
