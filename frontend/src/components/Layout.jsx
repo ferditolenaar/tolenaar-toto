@@ -79,8 +79,14 @@ export default function Layout() {
             <NavLink to="/" end className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>Home</NavLink>
             <NavLink to="/voorspellen" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>Voorspellen</NavLink>
             <NavLink to="/top4" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>Top 4</NavLink>
-            <NavLink to="/stand" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>Stand</NavLink>
-            <NavLink to="/uitslagen" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>Uitslagen</NavLink>
+
+            {user?.role === 'admin' && (
+              <NavLink to="/stand" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>Stand</NavLink>
+            )}
+
+            {user?.role === 'admin' && (
+              <NavLink to="/uitslagen" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>Uitslagen</NavLink>
+            )}
 
             {user?.role === 'admin' && (
               <NavLink to="/overzicht" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>Overzicht</NavLink>
