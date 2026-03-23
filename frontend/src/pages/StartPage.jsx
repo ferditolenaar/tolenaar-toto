@@ -192,7 +192,7 @@ export default function StartPage() {
                   {predictionStats.isLocked ? (
                     "🔒 Voorspellingen gesloten"
                   ) : (
-                    predictionStats.isFinished ? "✅ Alles ingevuld!" : `${predictionStats.missing} te gaan`
+                    predictionStats.isFinished ? "✅ Alles ingevuld!" : `${predictionStats.missing} nog in te vullen`
                   )}
                 </p>
               </div>
