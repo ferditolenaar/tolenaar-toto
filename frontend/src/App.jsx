@@ -18,7 +18,7 @@ function App() {
       <Routes>
         {/* Everything inside this Route gets the Navbar */}
         <Route element={<Layout />}>
-          <Route path="/" element={<StartPage />} />
+          <Route path="/" element={<ProtectedRoute><StartPage /></ProtectedRoute>} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/voorspellen" element={<ProtectedRoute><Predictions /></ProtectedRoute>} />

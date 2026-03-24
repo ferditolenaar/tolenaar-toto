@@ -13,7 +13,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await pb.collection('users').authWithPassword(formData.email, formData.password);
-      navigate('/'); 
+      navigate('/');
     } catch (err) {
       alert("Login failed: " + err.message);
     } finally {
@@ -23,29 +23,29 @@ export default function LoginPage() {
 
   return (
     <div className="auth-page-wrapper">
-      <div className="auth-card">
+      <div className="auth-card tournament-card"> {/* Added tournament-card */}
         <h2>Login</h2>
         <form onSubmit={handleSubmit}>
-          
+
           <div className="form-group">
             <label htmlFor="email">Emailadres</label>
-            <input 
-              id="email" 
-              type="email" 
+            <input
+              id="email"
+              type="email"
               value={formData.email}
-              onChange={e => setFormData({...formData, email: e.target.value})} 
-              required 
+              onChange={e => setFormData({ ...formData, email: e.target.value })}
+              required
             />
           </div>
 
           <div className="form-group">
             <label htmlFor="password">Wachtwoord</label>
-            <input 
-              id="password" 
-              type="password" 
+            <input
+              id="password"
+              type="password"
               value={formData.password}
-              onChange={e => setFormData({...formData, password: e.target.value})} 
-              required 
+              onChange={e => setFormData({ ...formData, password: e.target.value })}
+              required
             />
           </div>
 

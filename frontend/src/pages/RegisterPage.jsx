@@ -6,27 +6,34 @@ import '../Auth.css';
 export default function RegisterPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
- 
-  const [data, setData] = useState({ 
+
+  const [data, setData] = useState({
     firstName: '',
     lastName: '',
-    email: '', 
-    password: '', 
+    email: '',
+    password: '',
     passwordConfirm: ''
   });
 
   async function handleRegister(e) {
     e.preventDefault();
-    setLoading(true);
 
+    // 1. Password Length Check
+    if (data.password.length < 8) {
+      alert("Wachtwoord moet minimaal 8 tekens lang zijn.");
+      return;
+    }
+
+    // 2. Password Match Check
+    if (data.password !== data.passwordConfirm) {
+      alert("Wachtwoorden komen niet overeen.");
+      return;
+    }
+
+    setLoading(true);
     try {
-      // 1. Create the user record (PocketBase handles the extra fields automatically)
       await pb.collection('users').create(data);
-      
-      // 2. Automatically log them in
       await pb.collection('users').authWithPassword(data.email, data.password);
-      
-      // 3. Send them to the home page
       navigate('/');
     } catch (err) {
       alert("Registratie mislukt: " + err.message);
@@ -37,64 +44,66 @@ export default function RegisterPage() {
 
   return (
     <div className="auth-page-wrapper">
-      <div className="auth-card">
+      <div className="auth-card tournament-card"> {/* Added tournament-card */}
         <h2>Maak een nieuw account aan</h2>
         <form onSubmit={handleRegister}>
-          
+
           {/* First Name Field */}
           <div className="form-group">
             <label htmlFor="firstName">Voornaam</label>
-            <input 
-              id="firstName" 
-              type="text" 
+            <input
+              id="firstName"
+              type="text"
               value={data.firstName}
-              onChange={e => setData({...data, firstName: e.target.value})} 
-              required 
+              onChange={e => setData({ ...data, firstName: e.target.value })}
+              required
             />
           </div>
 
           {/* Last Name Field */}
           <div className="form-group">
             <label htmlFor="lastName">Achternaam</label>
-            <input 
-              id="lastName" 
-              type="text" 
+            <input
+              id="lastName"
+              type="text"
               value={data.lastName}
-              onChange={e => setData({...data, lastName: e.target.value})} 
-              required 
+              onChange={e => setData({ ...data, lastName: e.target.value })}
+              required
             />
           </div>
 
           <div className="form-group">
             <label htmlFor="email">Emailadres</label>
-            <input 
-              id="email" 
-              type="email" 
+            <input
+              id="email"
+              type="email"
               value={data.email}
-              onChange={e => setData({...data, email: e.target.value})} 
-              required 
+              onChange={e => setData({ ...data, email: e.target.value })}
+              required
             />
           </div>
 
           <div className="form-group">
             <label htmlFor="password">Wachtwoord</label>
-            <input 
-              id="password" 
-              type="password" 
+            <input
+              id="password"
+              type="password"
+              placeholder="Minimaal 8 tekens" /* Visual hint */
               value={data.password}
-              onChange={e => setData({...data, password: e.target.value})} 
-              required 
+              onChange={e => setData({ ...data, password: e.target.value })}
+              required
             />
+            <small className="form-hint">Minimaal 8 tekens lang</small>
           </div>
 
           <div className="form-group">
             <label htmlFor="passwordConfirm">Bevestig Wachtwoord</label>
-            <input 
-              id="passwordConfirm" 
-              type="password" 
+            <input
+              id="passwordConfirm"
+              type="password"
               value={data.passwordConfirm}
-              onChange={e => setData({...data, passwordConfirm: e.target.value})} 
-              required 
+              onChange={e => setData({ ...data, passwordConfirm: e.target.value })}
+              required
             />
           </div>
 

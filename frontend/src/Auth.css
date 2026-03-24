@@ -1,8 +1,11 @@
 .auth-page-wrapper {
-  flex: 1; /* Forces the wrapper to fill the space below the navbar */
+  flex: 1;
+  /* Forces the wrapper to fill the space below the navbar */
   display: flex;
-  justify-content: center; /* Horizontally centers the card */
-  align-items: center;     /* Vertically centers the card */
+  justify-content: center;
+  /* Horizontally centers the card */
+  align-items: center;
+  /* Vertically centers the card */
   width: 100%;
 }
 
@@ -12,21 +15,138 @@
   max-width: 420px;
   padding: 2.5rem;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   border: 1px solid #eee;
 }
 
 .auth-card h2 {
   margin-bottom: 2rem;
   text-align: center;
-  color: #1a1a1a; /* Fixes white-on-white text */
+  color: #1a1a1a;
+  /* Fixes white-on-white text */
   font-size: 1.5rem;
   font-weight: 800;
 }
 
 /* Input Styles */
-.form-group { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.5rem; }
-.form-group label { font-size: 0.85rem; font-weight: 600; color: #666; text-align: left; }
-.form-group input { padding: 12px; border: 1.5px solid #ddd; border-radius: 8px; font-size: 1rem; }
-.submit-btn { width: 100%; padding: 14px; background: #007bff; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
-.auth-footer { margin-top: 1.5rem; text-align: center; color: #666; }
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #666;
+  text-align: left;
+}
+
+.form-group input {
+  padding: 12px;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 14px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.auth-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+  color: #666;
+}
+
+/* Container for the whole auth view */
+.auth-page-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 70px);
+  background-color: #f8f9fa;
+  padding: 20px;
+}
+
+/* Updated Auth Card */
+.auth-card {
+  background: white;
+  width: 100%;
+  max-width: 450px;
+  padding: 2.5rem !important;
+  /* Matches your other dashboard cards */
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* The Link Styling */
+.auth-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.auth-footer a {
+  color: #00d4ff;
+  /* Electric Blue */
+  text-decoration: none;
+  font-weight: 500;
+  text-transform: uppercase;
+  margin-left: 5px;
+  transition: color 0.2s ease;
+  border-bottom: 2px solid transparent;
+}
+
+.auth-footer a:hover {
+  color: #dc3545;
+  /* FIFA Red */
+  border-bottom: 2px solid #dc3545;
+}
+
+/* Submit Button Style */
+.submit-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: filter 0.2s;
+  margin-top: 10px;
+}
+
+.submit-btn:hover:not(:disabled) {
+  filter: brightness(110%);
+}
+
+.submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.form-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: #888;
+  font-style: italic;
+}
+
+/* Optional: Turn the hint red if the password is too short while typing */
+.form-hint.error {
+  color: #dc3545;
+  font-weight: bold;
+}
