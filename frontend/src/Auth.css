@@ -150,3 +150,78 @@
   color: #dc3545;
   font-weight: bold;
 }
+
+/* The "OR" separator line */
+.social-login-separator {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 25px 0;
+    color: #888;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.social-login-separator::before,
+.social-login-separator::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #eee;
+}
+
+.social-login-separator:not(:empty)::before { margin-right: .5em; }
+.social-login-separator:not(:empty)::after { margin-left: .5em; }
+
+/* Button Container */
+.social-login-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+/* Base Social Button Style */
+.btn-social {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid #ddd;
+    background: white;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-social img {
+    width: 20px;
+    height: 20px;
+}
+
+/* Hover Effects */
+.btn-social:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.btn-google:hover {
+    border-color: #4285F4;
+    color: #4285F4;
+}
+
+.btn-facebook {
+    /* Subtle blue tint for Facebook button */
+    border-color: #e7eaf3;
+}
+
+.btn-facebook:hover {
+    border-color: #1877F2;
+    color: #1877F2;
+    background-color: #f0f2f5;
+}

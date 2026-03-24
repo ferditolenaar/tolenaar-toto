@@ -21,6 +21,15 @@ export default function LoginPage() {
     }
   }
 
+  const handleGoogleLogin = async () => {
+    try {
+      await pb.collection('users').authWithOAuth2({ provider: 'google' });
+      navigate('/');
+    } catch (err) {
+      console.error("Google Auth Failed", err);
+    }
+  };
+
   return (
     <div className="auth-page-wrapper">
       <div className="auth-card tournament-card"> {/* Added tournament-card */}
@@ -53,6 +62,18 @@ export default function LoginPage() {
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
+
+        <div className="social-login-separator">
+          <span>OF LOG IN MET</span>
+        </div>
+
+        <div className="social-login-container">
+          {/* Google Button */}
+          <button onClick={handleGoogleLogin} className="btn-social btn-google">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" />
+            <span>Google</span>
+          </button>
+        </div>
 
         <p className="auth-footer">
           Nog geen account? <Link to="/register">Registreer hier</Link>

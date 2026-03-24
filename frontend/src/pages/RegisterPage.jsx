@@ -42,6 +42,28 @@ export default function RegisterPage() {
     }
   }
 
+  const handleGoogleRegister = async () => {
+    try {
+      const authData = await pb.collection('users').authWithOAuth2({ provider: 'google' });
+
+      // If this is a brand new user, let's grab their name from Google
+      if (authData.meta.isNew) {
+        const fullNames = authData.meta.name.split(' ');
+        const fName = fullNames[0] || '';
+        const lName = fullNames.slice(1).join(' ') || '';
+
+        await pb.collection('users').update(authData.record.id, {
+          firstName: fName,
+          lastName: lName,
+        });
+      }
+
+      navigate('/');
+    } catch (err) {
+      console.error("Google Registration Failed", err);
+    }
+  };
+
   return (
     <div className="auth-page-wrapper">
       <div className="auth-card tournament-card"> {/* Added tournament-card */}
@@ -111,6 +133,18 @@ export default function RegisterPage() {
             {loading ? "Account aanmaken..." : "Registreren"}
           </button>
         </form>
+
+        <div className="social-login-separator">
+          <span>OF REGISTREER MET</span>
+        </div>
+
+        <div className="social-login-container">
+          <button onClick={handleGoogleRegister} className="btn-social btn-google">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" />
+            <span>Google</span>
+          </button>
+        </div>
+
         <p className="auth-footer">
           Heb je al een account? <Link to="/login">Log hier in</Link>
         </p>
