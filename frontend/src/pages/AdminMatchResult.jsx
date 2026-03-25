@@ -114,8 +114,6 @@ const AdminMatchResults = () => {
         processUpdate(matchId, field, currentVal + delta);
     };
 
-    const getTeamCode = (name) => name ? name.substring(0, 3).toUpperCase() : '...';
-
     const groupedMatches = matches.reduce((acc, match) => {
         const stage = match.stage || 'Overig';
         if (!acc[stage]) acc[stage] = [];
@@ -206,12 +204,12 @@ const AdminMatchResults = () => {
                                         <div className="mobile-team-container">
                                             <div className="cell-team">
                                                 <span className="desktop-only">{m.expand?.home_team?.name}</span>
-                                                <span className="mobile-only">{getTeamCode(m.expand?.home_team?.name)}</span>
+                                                <span className="mobile-only">{m.expand?.home_team?.code}</span>
                                             </div>
                                             <span className="mobile-only team-vs">vs</span>
                                             <div className="cell-team">
                                                 <span className="desktop-only">{m.expand?.away_team?.name}</span>
-                                                <span className="mobile-only">{getTeamCode(m.expand?.away_team?.name)}</span>
+                                                <span className="mobile-only">{m.expand?.away_team?.code}</span>
                                             </div>
                                         </div>
 

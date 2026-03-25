@@ -162,7 +162,7 @@ export default function MasterMatrix() {
                                         pred.pred_away_ft === match.away_ft;
 
                                     // 3. Check Toto Correctness (match.result vs pred.pred_toto)
-                                    const totoCorrect = match.result && pred?.pred_toto === match.result;
+                                    const totoCorrect = pred && pred.pred_toto === match.match_toto;
 
                                     return (
                                         <td key={`cell-${match.id}-${index}`} className="pred-cell-matrix">
@@ -177,7 +177,7 @@ export default function MasterMatrix() {
                                                         {pred ? `${pred.pred_home_ft}-${pred.pred_away_ft}` : '-'}
                                                     </span>
                                                 </div>
-                                                <div className={`s-toto ${totoCorrect ? 'marker-correct' : ''}`}>
+                                                <div className={`s-toto ${totoCorrect ? 'is-correct' : ''}`}>
                                                     {pred?.pred_toto || '-'}
                                                 </div>
                                             </div>

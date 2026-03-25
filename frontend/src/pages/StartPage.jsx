@@ -6,7 +6,9 @@ import '../Features.css';
 export default function StartPage() {
   const [matches, setMatches] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
-
+  const [loading, setLoading] = useState(true);
+  const [activePhase, setActivePhase] = useState('GROEP'); // Default
+  
   const [predictionStats, setPredictionStats] = useState({
     total: 0,
     predicted: 0,

@@ -165,8 +165,8 @@ const LeaderboardPage = () => {
     return (
         <div className="container-centered page-container">
             <header className="page-header tournament-theme">
-                <h1 className="tournament-title">Klassement</h1>
-                <p className="admin-subtitle">Wie staat er bovenaan in de DeRoTo pool?</p>
+                <h1 className="tournament-title">Stand</h1>
+                <p className="admin-subtitle">Wie staat er bovenaan in de DeRoTo toto?</p>
             </header>
 
             <div className="leaderboard-card">
@@ -186,10 +186,14 @@ const LeaderboardPage = () => {
                             <tr key={user.id} className={index === 0 ? 'top-rank' : ''}>
                                 <td className="rank-cell">{index + 1}</td>
                                 <td className="name-cell">
-                                    {user.name}
-                                    {index === 0 && <span className="trophy-icon"> 🏆</span>}
-                                    <div className="mobile-only mobile-score-breakdown">
-                                        A: {user.partA} | B: {user.partB} | C: {user.partC}
+                                    <div className="player-info-stack">
+                                        <span className="player-full-name">
+                                            {user.name}
+                                            {index === 0 && <span className="trophy-icon"> 🏆</span>}
+                                        </span>
+                                        <div className="mobile-only mobile-score-breakdown">
+                                            A: {user.partA} | B: {user.partB} | C: {user.partC}
+                                        </div>
                                     </div>
                                 </td>
                                 <td className="points-cell text-right secondary-pts desktop-only">{user.partA}</td>

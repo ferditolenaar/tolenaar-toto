@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import pb from '../lib/pocketbase';
 import '../Features.css';
+import '../Predictions.css';
 
 const PredictionsPage = () => {
     const [matches, setMatches] = useState([]);
@@ -12,6 +13,7 @@ const PredictionsPage = () => {
 
     const stageOrder = ['Groepsfase', 'Zestiende Finale', 'Achtste Finale', 'Kwartfinale', 'Halve Finale', 'Troostfinale', 'Finale'];
     const [activeStages, setActiveStages] = useState(stageOrder);
+    const [stageStatus, setStageStatus] = useState(null);
 
     useEffect(() => { loadData(); }, []);
 
@@ -31,11 +33,7 @@ const PredictionsPage = () => {
                 entries.forEach((entry) => {
                     if (entry.isIntersecting) {
                         let stageId = entry.target.id;
-
-                        // Group the last three stages under the 'Halve Finale' highlight
-                        if (['Troostfinale', 'Finale'].includes(stageId)) {
-                            stageId = 'Halve Finale';
-                        }
+                        if (['Troostfinale', 'Finale'].includes(stageId)) stageId = 'Halve Finale';
 
                         setVisibleStage(stageId);
                     }
@@ -79,6 +77,13 @@ const PredictionsPage = () => {
                     };
                 });
                 setUserPredictions(predMap);
+
+                // ADD THIS: Set initial status for the first visible stage
+                if (matchRecords.length > 0) {
+                    const firstStage = matchRecords[0].stage;
+                    const initialStatus = getStageLimitStatus(firstStage, matchRecords, predMap);
+                    setStageStatus(initialStatus);
+                }
             }
         } catch (err) {
             console.error("Error loading data:", err);
@@ -96,8 +101,40 @@ const PredictionsPage = () => {
         return new Date().getTime() < deadline;
     };
 
+    const getStageLimitStatus = (stageName, allMatches, allPredictions, pendingUpdate = null) => {
+        const exemptStages = ['Halve Finale', 'Troostfinale', 'Finale'];
+        if (exemptStages.includes(stageName)) return null;
+
+        const stageMatches = allMatches.filter(m => m.stage === stageName);
+        const maxAllowed = Math.floor(stageMatches.length / 2);
+
+        const currentCount = stageMatches.filter(m => {
+            let p;
+            // If this is the match being typed in, use the NEW data instead of state
+            if (pendingUpdate && m.id === pendingUpdate.matchId) {
+                p = pendingUpdate.data;
+            } else {
+                p = allPredictions[m.id];
+            }
+
+            return p && p.home_ht !== '' && p.away_ht !== '' &&
+                Number(p.home_ht) === 0 && Number(p.away_ht) === 0;
+        }).length;
+
+        return {
+            stage: stageName,
+            current: currentCount,
+            max: maxAllowed,
+            remaining: Math.max(0, maxAllowed - currentCount)
+        };
+    };
+
     const is00LimitReached = (matchId, stage, h_ht, a_ht) => {
-        //if (Number(h_ht) !== 0 || Number(a_ht) !== 0) return { isLimitReached: false };
+        // If the user is currently typing (value is empty string), don't trigger the limit yet
+        if (h_ht === '' || a_ht === '') return { isLimitReached: false };
+
+        // If the score is NOT 0-0, the limit doesn't apply
+        if (Number(h_ht) !== 0 || Number(a_ht) !== 0) return { isLimitReached: false };
 
         const exemptStages = ['Halve Finale', 'Troostfinale', 'Finale'];
         if (exemptStages.includes(stage)) return { isLimitReached: false };
@@ -108,12 +145,13 @@ const PredictionsPage = () => {
         const currentCount = stageMatches.filter(m => {
             if (m.id === matchId) return false;
             const p = userPredictions[m.id];
-            return p && Number(p.home_ht) === 0 && Number(p.away_ht) === 0;
+            // Only count established 0-0 predictions
+            return p && p.home_ht !== '' && p.away_ht !== '' && Number(p.home_ht) === 0 && Number(p.away_ht) === 0;
         }).length;
 
         return {
             isLimitReached: currentCount >= maxAllowed,
-            current: currentCount + (Number(h_ht) === 0 && Number(a_ht) === 0 ? 1 : 0),
+            current: currentCount + 1,
             max: maxAllowed
         };
     };
@@ -124,36 +162,32 @@ const PredictionsPage = () => {
         if (!match || !isStageEditable(match.stage, matches)) return;
 
         const currentPred = userPredictions[matchId] || { home_ht: 0, away_ht: 0, home_ft: 0, away_ft: 0, toto: '3' };
-
-        let cleanValue;
-        if (field === 'toto') {
-            cleanValue = String(value); // Keep '1', '2', or '3' as a string
-        } else {
-            cleanValue = value === '' ? '' : Math.max(0, parseInt(value) || 0);
-        }
-
+        let cleanValue = field === 'toto' ? String(value) : (value === '' ? '' : Math.max(0, parseInt(value) || 0));
         const updated = { ...currentPred, [field]: cleanValue };
 
-        // 1. Guard against 0-0 limit
+        // 1. Calculate new status INCLUDING the current change
+        const newStatus = getStageLimitStatus(match.stage, matches, userPredictions, { matchId, data: updated });
+
+        // 2. The Hard Check: Stop saving if this move violates the limit
         const check = is00LimitReached(matchId, match.stage, updated.home_ht, updated.away_ht);
         if (check.isLimitReached) {
-            setSyncError(`Max ${check.max} x 0-0 ruststanden voor ${match.stage}, nu ${check.current}`);
+            setSyncError(`Limiet bereikt: Max ${check.max}x 0-0 voor ${match.stage}.`);
             setErrorTrigger(prev => prev + 1);
-            return; // Block the update
+
+            // We still show the 0 in the UI and update the toast bar count
+            setUserPredictions(prev => ({ ...prev, [matchId]: updated }));
+            setStageStatus(newStatus);
+            return;
         }
 
-        // 2. TOTO Logic
-        if (field === 'home_ft' || field === 'away_ft') {
-            const h = parseInt(updated.home_ft) || 0;
-            const a = parseInt(updated.away_ft) || 0;
-            updated.toto = h > a ? '1' : a > h ? '2' : '3';
-        }
-
-        // 3. Update State
+        // 3. Clear errors and update everything
+        setSyncError(null);
         setUserPredictions(prev => ({ ...prev, [matchId]: updated }));
+        setStageStatus(newStatus);
 
-        // 4. Trigger AutoSave (only if it's a valid number or we want to save 0)
-        autoSave(matchId, updated);
+        if (updated.home_ht !== '' && updated.away_ht !== '') {
+            autoSave(matchId, updated);
+        }
     };
 
     const autoSave = async (matchId, updatedData) => {
@@ -210,8 +244,6 @@ const PredictionsPage = () => {
             if (userPredictions[m.id]) await autoSave(m.id, userPredictions[m.id]);
         }
     };
-
-    const getTeamCode = (name) => name ? name.substring(0, 3).toUpperCase() : '...';
 
     const groupedMatches = matches.reduce((acc, m) => {
         const s = m.stage || 'Overig';
@@ -302,12 +334,12 @@ const PredictionsPage = () => {
                                         <div className="mobile-team-container">
                                             <div className="cell-team">
                                                 <span className="desktop-only">{m.expand?.home_team?.name || '...'}</span>
-                                                <span className="mobile-only">{getTeamCode(m.expand?.home_team?.name)}</span>
+                                                <span className="mobile-only">{m.expand?.home_team?.code || '...'}</span>
                                             </div>
                                             <span className="mobile-only team-vs">vs</span>
                                             <div className="cell-team">
                                                 <span className="desktop-only">{m.expand?.away_team?.name || '...'}</span>
-                                                <span className="mobile-only">{getTeamCode(m.expand?.away_team?.name)}</span>
+                                                <span className="mobile-only">{m.expand?.away_team?.code || '...'}</span>
                                             </div>
                                         </div>
 
@@ -394,15 +426,34 @@ const PredictionsPage = () => {
                 })}
             </div>
 
-            <div key={errorTrigger} className={`floating-sync-bar ${syncError ? 'sync-error sync-error-shake' : isSyncing ? 'syncing' : 'synced'}`} onClick={handleManualSync}>
-                <div className="sync-content">
-                    {syncError ? (
-                        <><span className="sync-icon">⚠️</span><span>{syncError}</span></>
-                    ) : isSyncing ? (
-                        <><div className="sync-loader"></div><span>Opslaan...</span></>
-                    ) : (
-                        <><span className="sync-icon">✔</span><span>{lastSaved ? `Laatst opgeslagen om ${lastSaved}` : 'Opgeslagen'}</span></>
-                    )}
+            <div className="toast-stack-container">
+
+                {stageStatus && stageStatus.remaining <= 5 && (
+                    <div className={`status-toast ${stageStatus.remaining === 0 ? 'at-limit' : 'near-limit'}`}>
+                        <span className="sync-icon">💡</span>
+                        <span>
+                            {stageStatus.remaining === 0
+                                ? `${stageStatus.stage}: Max ${stageStatus.max} x 0-0 bereikt.`
+                                : `${stageStatus.stage}: Nog maar ${stageStatus.remaining}x 0-0 rustand mogelijk.`}
+                        </span>
+                    </div>
+                )}
+
+                {/* 2. Sync/Error Bar (Bottom of stack) */}
+                <div
+                    key={errorTrigger}
+                    className={`floating-sync-bar ${syncError ? 'sync-error' : isSyncing ? 'syncing' : 'synced'}`}
+                    onClick={handleManualSync}
+                >
+                    <div className="sync-content">
+                        {syncError ? (
+                            <><span className="sync-icon">❌</span><span>{syncError}</span></>
+                        ) : isSyncing ? (
+                            <><div className="sync-loader"></div><span>Opslaan...</span></>
+                        ) : (
+                            <><span className="sync-icon">✔</span><span>Opgeslagen</span></>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

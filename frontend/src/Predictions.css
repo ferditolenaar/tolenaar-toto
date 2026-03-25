@@ -1,0 +1,120 @@
+/* --- 1. Sticky Header & Filter Overrides --- */
+/* This ensures the headers don't "ghost" over each other */
+
+.page-header.tournament-theme {
+    position: sticky;
+    top: 70px; /* Adjust to your Navbar height */
+    z-index: 1000;
+    background-color: #f8f9fa !important;
+    padding-top: 15px;
+    margin-bottom: 0;
+    border-bottom: 1px solid #eee;
+}
+
+.filter-container {
+    position: sticky;
+    top: 145px; /* Sits exactly below the page-header */
+    z-index: 900;
+    background-color: #f8f9fa;
+    padding: 15px 0;
+    margin: 0;
+    box-shadow: 0 4px 6px -4px rgba(0,0,0,0.1);
+}
+
+/* --- 2. Container Fixes --- */
+.predictions-body {
+    padding-top: 20px;
+    padding-bottom: 120px; /* Gap for the toast stack */
+}
+
+/* --- 3. Match Row & Input Overrides --- */
+/* These ensure your user-facing inputs stay high-contrast */
+
+.match-row-wide {
+    background: white;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    border: 1px solid #eee !important;
+    transition: border-color 0.2s;
+}
+
+.in-ht {
+    width: 36px;
+    height: 32px;
+    background: #333 !important;
+    color: white !important;
+    border: 1px solid #444 !important;
+}
+
+.in-ft {
+    width: 44px;
+    height: 40px;
+    background: #fff !important;
+    color: #000 !important;
+    border: 1.5px solid #ddd !important;
+    font-size: 1.2rem !important;
+}
+
+/* --- 4. THE TOAST STACK (Strict Overrides) --- */
+/* We reset the 'fixed' positions from the old floating-sync-bar here */
+
+.toast-stack-container {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 9999;
+    align-items: flex-end;
+    pointer-events: none;
+}
+
+.floating-sync-bar, 
+.status-toast {
+    position: relative !important; /* Disables the old 'fixed' from Features.css */
+    bottom: auto !important;
+    right: auto !important;
+    pointer-events: auto;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    white-space: nowrap;
+}
+
+/* Status Colors */
+.status-toast.near-limit { background: #ffc107; color: #2c3e50; }
+.status-toast.at-limit { background: #2c3e50; color: #00d4ff; border: 1px solid #00d4ff; }
+
+/* Sync Colors */
+.floating-sync-bar.syncing { background: #f39c12 !important; }
+.floating-sync-bar.synced { background: #27ae60 !important; }
+.floating-sync-bar.sync-error { 
+    background: #e74c3c !important; 
+    animation: toast-shake 0.4s ease-in-out;
+}
+
+@keyframes toast-shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+}
+
+/* --- 5. Mobile Override Refinements --- */
+@media (max-width: 1024px) {
+    .toast-stack-container {
+        right: 15px;
+        left: 15px;
+        align-items: center;
+    }
+    
+    .floating-sync-bar, .status-toast {
+        width: 100%;
+        justify-content: center;
+    }
+}
