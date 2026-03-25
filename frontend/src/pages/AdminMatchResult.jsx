@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import pb from '../lib/pocketbase';
+import { calculateMatchPoints, calculateTop4Points } from '../lib/scoring';
 import '../Features.css';
+import '../Admin.css';
 
 const AdminMatchResults = () => {
     const [matches, setMatches] = useState([]);
@@ -14,6 +16,53 @@ const AdminMatchResults = () => {
     const [activeStages, setActiveStages] = useState(stageOrder);
 
     useEffect(() => { loadData(); }, []);
+
+    const handleGlobalRecalculate = async () => {
+        if (!window.confirm("Weet je het zeker? Dit overschrijft alle punten in de database.")) return;
+
+        setIsSyncing(true); // Assuming you have a loading state
+        try {
+            const [rules, official, matches, users, predictions, top4Preds] = await Promise.all([
+                pb.collection('tournament_settings').getFirstListItem('is_active=true'),
+                pb.collection('tournament_top4').getFirstListItem(''),
+                pb.collection('matches').getFullList(),
+                pb.collection('users').getFullList({ filter: 'paid = true' }),
+                pb.collection('predictions').getFullList(),
+                pb.collection('top_four_predictions').getFullList()
+            ]);
+
+            for (const user of users) {
+                let pA = 0, pB = 0, pC = 0;
+
+                // Match Points
+                predictions.filter(p => p.user === user.id).forEach(pred => {
+                    const m = matches.find(match => match.id === pred.match);
+                    const pts = calculateMatchPoints(pred, m, rules);
+                    if (m?.stage === 'Groepsfase') pA += pts;
+                    else pB += pts;
+                });
+
+                // Top 4 Points
+                const uTop4 = top4Preds.filter(p => p.user === user.id);
+                pC += calculateTop4Points(uTop4.find(p => p.phase === 'pre_tournament'), official, rules.top4_pre_tournament);
+                pC += calculateTop4Points(uTop4.find(p => p.phase === 'post_group_stage'), official, rules.top4_post_tournament);
+
+                // UPDATE THE USER RECORD
+                await pb.collection('users').update(user.id, {
+                    total_points: pA + pB + pC,
+                    score_part_a: pA,
+                    score_part_b: pB,
+                    score_part_c: pC
+                });
+            }
+            alert("Database is bijgewerkt!");
+        } catch (err) {
+            console.error(err);
+            alert("Fout bij herberekenen.");
+        } finally {
+            setIsSyncing(false);
+        }
+    };
 
     const loadData = async () => {
         try {
@@ -177,6 +226,20 @@ const AdminMatchResults = () => {
                         </button>
                     ))}
                 </div>
+
+                {/* Clean, secondary action button */}
+                {isAdmin && (
+                    <div className="admin-actions-bar">
+                        <button
+                            className={`admin-sync-btn ${isSyncing ? 'syncing' : ''}`}
+                            onClick={handleGlobalRecalculate}
+                            disabled={isSyncing}
+                        >
+                            <span className="sync-icon">{isSyncing ? '⏳' : '🔄'}</span>
+                            <span>{isSyncing ? 'Punten verwerken...' : 'Herbereken Alle Standen'}</span>
+                        </button>
+                    </div>
+                )}
             </header>
 
             <div className="predictions-body">
