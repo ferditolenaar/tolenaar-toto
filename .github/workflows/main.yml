@@ -23,5 +23,5 @@ jobs:
       - name: Rebuild and Recreate
         run: |
           cd /volume1/docker/tolenaar-toto
-          # Build fresh and force Synology to replace the running container
-          docker compose up -d --build --force-recreate
+          docker compose build --no-cache frontend
+          docker compose up -d --force-recreate
