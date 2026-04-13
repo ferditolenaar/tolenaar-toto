@@ -201,7 +201,7 @@ const AdminMatchResults = () => {
         <div className="container-centered page-container">
             <header className="page-header tournament-theme">
                 <h1 className="tournament-title">
-                    {isAdmin ? "Beheer Uitslagen" : "Officiële Uitslagen"}
+                    {isAdmin ? "Beheer Uitslagen" : "Uitslagen"}
                 </h1>
                 <div className="filter-container">
                     {navStages.map(stage => (
