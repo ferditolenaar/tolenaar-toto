@@ -301,7 +301,7 @@ const PredictionsPage = () => {
     return (
         <div className="container-centered page-container">
             <header className="page-header tournament-theme">
-                <h1 className="tournament-title">WK 2026 Voorspellen</h1>
+                <h1 className="tournament-title">Voorspellen Wedstrijden</h1>
                 <div className="filter-container">
                     {navStages.map(stage => (
                         <button

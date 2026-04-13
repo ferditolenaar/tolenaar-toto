@@ -12,6 +12,8 @@ export default function MasterMatrix() {
 
     const stageOrder = ['Groepsfase', 'Zestiende Finale', 'Achtste Finale', 'Kwartfinale', 'Halve Finale', 'Troostfinale', 'Finale'];
 
+    const [visibleStage, setVisibleStage] = useState(stageOrder[0]);
+
     // Stages for the filter buttons
     const navStages = [
         'Groepsfase',
@@ -20,6 +22,9 @@ export default function MasterMatrix() {
         'Kwartfinale',
         'Halve Finale'
     ];
+
+    const user = pb.authStore.model;
+    const isAdmin = user?.role === 'admin';
 
     useEffect(() => {
         const fetchMatrixData = async () => {
@@ -30,7 +35,7 @@ export default function MasterMatrix() {
                         sort: 'match_date',
                         expand: 'home_team,away_team',
                     }),
-                    pb.collection('users').getFullList({ sort: 'lastName' }),
+                    pb.collection('users').getFullList({ sort: 'order' }),
                     pb.collection('predictions').getFullList({ requestKey: null })
                 ]);
                 // Keep your duplicated user set for testing large grids
@@ -48,8 +53,6 @@ export default function MasterMatrix() {
         fetchMatrixData();
     }, []);
 
-    const [visibleStage, setVisibleStage] = useState(stageOrder[0]);
-
     const filteredMatches = useMemo(() => {
         let matches = [];
         if (activeStage === 'Finales') {
@@ -57,7 +60,7 @@ export default function MasterMatrix() {
         } else {
             matches = data.matches.filter(m => m.stage?.trim() === activeStage.trim());
         }
-        return matches;
+        return matches
     }, [data.matches, activeStage]);
 
     useEffect(() => {
@@ -85,22 +88,42 @@ export default function MasterMatrix() {
     }, [filteredMatches]);
 
     const filteredUsers = useMemo(() => {
-        return data.users.filter(u =>
-            `${u.firstName} ${u.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
-        );
+        return [...data.users]
+            .filter(u => `${u.firstName} ${u.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()))
+            // Sort by 'order' primarily, then lastName
+            .sort((a, b) => (a.order || 0) - (b.order || 0) || a.lastName.localeCompare(b.lastName));
     }, [data.users, searchTerm]);
 
-    if (loading) return <div className="loading-state">Matrix aan het genereren...</div>;
+    const handleOrderChange = async (userId, newOrder) => {
+        const val = parseInt(newOrder) || 0;
+        try {
+            // 1. Update PocketBase
+            await pb.collection('users').update(userId, { order: val });
 
-    const getShortStageName = (name) => {
-        const names = {
-            'Groepsfase': 'Groep',
-            'Zestiende Finale': '1/16',
-            'Achtste Finale': '1/8',
-            'Kwartfinale': '1/4',
-            'Halve Finale': '1/2'
-        };
-        return names[name] || name;
+            // 2. Update local state to trigger the useMemo sort
+            setData(prev => ({
+                ...prev,
+                users: prev.users.map(u => u.id === userId ? { ...u, order: val } : u)
+            }));
+        } catch (err) {
+            console.error("Failed to update order:", err);
+        }
+    };
+
+    const handlePaidToggle = async (userId, currentStatus) => {
+        const newStatus = !currentStatus;
+        try {
+            // 1. Update PocketBase
+            await pb.collection('users').update(userId, { paid: newStatus });
+
+            // 2. Update local state
+            setData(prev => ({
+                ...prev,
+                users: prev.users.map(u => u.id === userId ? { ...u, paid: newStatus } : u)
+            }));
+        } catch (err) {
+            console.error("Failed to update paid status:", err);
+        }
     };
 
     return (
@@ -128,8 +151,29 @@ export default function MasterMatrix() {
                             <th className="sticky-col matrix-header-cell">Match</th>
 
                             {filteredUsers.map((user, index) => (
-                                <th key={`${user.id}-${index}`} className="user-header" title={`${user.firstName} ${user.lastName}`}>
+                                <th key={`${user.id}-${index}`} className={`user-header ${user.paid ? 'status-paid' : 'status-unpaid'}`}>
                                     <div className="header-initials">
+                                        {isAdmin && (
+                                            <div className="admin-controls-wrapper">
+                                                {/* Order Input */}
+                                                <input
+                                                    type="number"
+                                                    className="admin-order-input"
+                                                    defaultValue={user.order || 0}
+                                                    onBlur={(e) => handleOrderChange(user.id, e.target.value)}
+                                                    onKeyDown={(e) => e.key === 'Enter' && handleOrderChange(user.id, e.target.value)}
+                                                />
+                                                {/* Paid Checkbox */}
+                                                <label className="admin-paid-checkbox">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={user.paid || false}
+                                                        onChange={() => handlePaidToggle(user.id, user.paid)}
+                                                    />
+                                                    <span className="checkbox-label">Betaald</span>
+                                                </label>
+                                            </div>
+                                        )}
                                         <span className="f-name">{user.firstName}</span>
                                         <br />
                                         <span className="l-name">{user.lastName}</span>
