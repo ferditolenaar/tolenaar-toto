@@ -159,6 +159,15 @@ html {
   height: 100%;
   position: relative;
   transition: color 0.2s ease;
+  flex-direction: column;
+  justify-content: center;
+}
+
+span.voorspel {
+  font-size: 0.6rem;
+  line-height: 1rem;
+  display: block;
+  justify-content: center;
 }
 
 /* The Green Bar */
@@ -398,6 +407,8 @@ html {
     margin: 0 !important;
     border-bottom: 1px solid #2a2a2a;
     justify-content: flex-start;
+    flex-direction: column;
+    justify-content: center;
   }
 
   /* FIXED: Vertical Green Strip (No Gaps) */

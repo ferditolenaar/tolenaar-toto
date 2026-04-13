@@ -80,8 +80,8 @@ export default function Layout() {
 
             {isLoggedIn && (
               <>
-                <NavLink to="/voorspellen" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>Voorspellen</NavLink>
-                <NavLink to="/top4" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>Top 4</NavLink>
+                <NavLink to="/voorspellen" className={({ isActive }) => isActive ? 'nav-item active voorspel' : 'nav-item voorspel'}><span class="voorspel">Voorspellen</span>Wedstrijden</NavLink>
+                <NavLink to="/top4" className={({ isActive }) => isActive ? 'nav-item active voorspel' : 'nav-item voorspel'}><span class="voorspel">Voorspellen</span>Top 4</NavLink>
               </>
             )}
 

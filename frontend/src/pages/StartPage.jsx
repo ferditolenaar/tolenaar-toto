@@ -176,7 +176,7 @@ export default function StartPage() {
                     </p>
                   </div>
                   <Link to="/top4" className="card-action-btn-sm gold-btn">
-                    {isPreTournamentLocked && !isPostGroupActive ? "Bekijk" : "Nu Invullen"}
+                    {isPreTournamentLocked && !isPostGroupActive ? "Bekijk" : "Voorspel Top 4"}
                   </Link>
                 </div>
                 <div className="vertical-divider"></div>
@@ -205,7 +205,7 @@ export default function StartPage() {
                 to="/voorspellen"
                 className={`card-action-btn-sm ${predictionStats.isLocked ? 'gray-btn' : 'green-btn'}`}
               >
-                {predictionStats.isLocked ? "Bekijk Voorspellingen" : (predictionStats.isFinished ? "Aanpassen" : "Voorspellen")}
+                {predictionStats.isLocked ? "Bekijk Voorspellingen" : (predictionStats.isFinished ? "Aanpassen" : "Voorspel Wedstrijden")}
               </Link>
             </div>
 

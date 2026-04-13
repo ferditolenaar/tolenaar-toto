@@ -69,10 +69,10 @@ const PredictionsPage = () => {
                 predRecords.forEach(p => {
                     predMap[p.match] = {
                         id: p.id,
-                        home_ht: p.pred_home_ht ?? 0,
-                        away_ht: p.pred_away_ht ?? 0,
-                        home_ft: p.pred_home_ft ?? 0,
-                        away_ft: p.pred_away_ft ?? 0,
+                        home_ht: p.pred_home_ht ?? 1,
+                        away_ht: p.pred_away_ht ?? 1,
+                        home_ft: p.pred_home_ft ?? 1,
+                        away_ft: p.pred_away_ft ?? 1,
                         toto: p.pred_toto || '3'
                     };
                 });
@@ -161,22 +161,41 @@ const PredictionsPage = () => {
         const match = matches.find(m => m.id === matchId);
         if (!match || !isStageEditable(match.stage, matches)) return;
 
-        const currentPred = userPredictions[matchId] || { home_ht: 0, away_ht: 0, home_ft: 0, away_ft: 0, toto: '3' };
+        const currentPred = userPredictions[matchId] || { home_ht: 1, away_ht: 1, home_ft: 1, away_ft: 1, toto: '3' };
         let cleanValue = field === 'toto' ? String(value) : (value === '' ? '' : Math.max(0, parseInt(value) || 0));
         const updated = { ...currentPred, [field]: cleanValue };
 
         // 1. Calculate new status INCLUDING the current change
         const newStatus = getStageLimitStatus(match.stage, matches, userPredictions, { matchId, data: updated });
 
+        // if ((field === 'home_ft' || field === 'away_ft') && (updated.home_ht === 0 || updated.away_ht === 0) && !currentPred.id) { 
+        //     updated.home_ht = updated.home_ft;
+        //     updated.away_ht = updated.away_ft;
+        // }
+
         // 2. The Hard Check: Stop saving if this move violates the limit
         const check = is00LimitReached(matchId, match.stage, updated.home_ht, updated.away_ht);
+
         if (check.isLimitReached) {
             setSyncError(`Limiet bereikt: Max ${check.max}x 0-0 voor ${match.stage}.`);
             setErrorTrigger(prev => prev + 1);
 
-            // We still show the 0 in the UI and update the toast bar count
-            setUserPredictions(prev => ({ ...prev, [matchId]: updated }));
-            setStageStatus(newStatus);
+            if (!currentPred.id) {
+                // INITIAL SAVE: Record doesn't exist in DB yet, clear the input
+                setUserPredictions(prev => ({
+                    ...prev,
+                    [matchId]: { home_ht: '', away_ht: '', home_ft: '', away_ft: '', toto: '' }
+                }));
+            } else {
+                // CHANGE: Record exists, revert to the last valid value (currentPred)
+                setUserPredictions(prev => ({
+                    ...prev,
+                    [matchId]: currentPred
+                }));
+            }
+
+            // Ensure the toast bar doesn't count the invalid move
+            setStageStatus(getStageLimitStatus(match.stage, matches, userPredictions));
             return;
         }
 
