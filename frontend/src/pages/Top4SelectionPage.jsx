@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import pb from '../lib/pocketbase';
 import '../Features.css';
+import '../Predictions.css';
 
 const Top4SelectionPage = () => {
     const [teams, setTeams] = useState([]);
@@ -161,13 +162,18 @@ const Top4SelectionPage = () => {
                 )}
             </div>
 
-            <div className={`floating-sync-bar ${isSyncing ? 'syncing' : 'synced'}`}>
-                <div className="sync-content">
-                    {isSyncing ? (
-                        <><div className="sync-loader"></div><span>Opslaan...</span></>
-                    ) : (
-                        <><span className="sync-icon">✔</span><span>Opgeslagen {lastSaved && `om ${lastSaved}`}</span></>
-                    )}
+            <div className="toast-stack-container">
+                {/* 2. Sync/Error Bar (Bottom of stack) */}
+                <div
+                    className={`floating-sync-bar ${isSyncing ? 'syncing' : 'synced'}`}
+                >
+                    <div className="sync-content">
+                        {isSyncing ? (
+                            <><div className="sync-loader"></div><span>Opslaan...</span></>
+                        ) : (
+                            <><span className="sync-icon">✔</span><span>Opgeslagen</span></>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

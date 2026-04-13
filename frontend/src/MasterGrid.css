@@ -12,7 +12,7 @@ body {
     flex-direction: column;
     height: calc(100vh - 70px);
     /* Full height minus DeRoTo Navbar */
-    width: 100vw;
+    width: 100%;
     background: #f8f9fa;
 }
 
@@ -251,13 +251,13 @@ body {
 }
 
 /* Chrome, Safari, Edge, Opera */
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
+div.admin-controls-wrapper > input::-webkit-outer-spin-button,
+div.admin-controls-wrapper > input::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
 }
 
 /* Firefox */
-input[type=number] {
+div.admin-controls-wrapper > input[type=number] {
     -moz-appearance: textfield;
 }

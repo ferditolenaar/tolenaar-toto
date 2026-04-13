@@ -8,7 +8,13 @@ export default function StartPage() {
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activePhase, setActivePhase] = useState('GROEP'); // Default
-  
+
+  const [top4Stats, setTop4Stats] = useState({
+    predicted: 0,
+    total: 4,
+    isFinished: false
+  });
+
   const [predictionStats, setPredictionStats] = useState({
     total: 0,
     predicted: 0,
@@ -49,12 +55,12 @@ export default function StartPage() {
         const userId = pb.authStore.model?.id;
 
         // 1. Fetch Leaderboard
-        const topUsers = await pb.collection('users').getFullList({
+        const topUsers = await pb.collection('users').getList(1, 5, {
           sort: '-total_points',
-          limit: 5,
+          batch: 5,
           requestKey: null
         });
-        setLeaderboard(topUsers);
+        setLeaderboard(topUsers.items);
 
         // 2. Fetch All Matches
         const allMatches = await pb.collection('matches').getFullList({
@@ -129,6 +135,31 @@ export default function StartPage() {
             // 4. Set Top 4 visibility
             // Shows if we are in GROEP phase OR the post-group window, as long as knockouts haven't started.
             setShouldShowTop4((phaseKey === 'GROEP' || postGroupActive) && !knockoutStarted);
+
+            // NEW: Fetch Top 4 prediction record
+            try {
+              const top4Record = await pb.collection('top_four_predictions').getFirstListItem(`user = "${userId}"`, {
+                requestKey: null
+              });
+
+              // Assuming your fields are named p1, p2, p3, p4 or similar
+              // We count how many of these are truthy (not empty)
+              const filledCount = [
+                top4Record.rank_1,
+                top4Record.rank_2,
+                top4Record.rank_3,
+                top4Record.rank_4
+              ].filter(val => val && val !== "").length;
+
+              setTop4Stats({
+                predicted: filledCount,
+                total: 4,
+                isFinished: filledCount === 4
+              });
+            } catch (err) {
+              // If no record exists yet, the count remains 0
+              setTop4Stats({ predicted: 0, total: 4, isFinished: false });
+            }
           }
 
           // --- UPCOMING MATCHES CARD ---
@@ -172,11 +203,28 @@ export default function StartPage() {
                   <div className="card-header-sm">
                     <h3>🏆 {isPostGroupActive ? "Knock-out Top 4" : "Top 4 Status"}</h3>
                     <p className="status-txt">
-                      {isPreTournamentLocked && !isPostGroupActive ? "🔒 Gesloten" : "Kies je winnaars"}
+                      {isPreTournamentLocked && !isPostGroupActive ? (
+                        "🔒 Gesloten"
+                      ) : (
+                        top4Stats.isFinished
+                          ? "✅ Alles ingevuld!"
+                          : `${top4Stats.total - top4Stats.predicted} nog in te vullen`
+                      )}
                     </p>
                   </div>
+
+                  {/* Matching Progress Bar */}
+                  <div className="progress-container">
+                    <div
+                      className="progress-bar gold-bar"
+                      style={{ width: `${(top4Stats.predicted / top4Stats.total) * 100}%` }}
+                    ></div>
+                  </div>
+
                   <Link to="/top4" className="card-action-btn-sm gold-btn">
-                    {isPreTournamentLocked && !isPostGroupActive ? "Bekijk" : "Voorspel Top 4"}
+                    {isPreTournamentLocked && !isPostGroupActive
+                      ? "Bekijk"
+                      : (top4Stats.isFinished ? "Aanpassen" : "Voorspel Top 4")}
                   </Link>
                 </div>
                 <div className="vertical-divider"></div>
@@ -217,7 +265,7 @@ export default function StartPage() {
       <div className="feature-grid section-spacing">
         <div className="feature-card tournament-card">
           <div className="card-header">
-            <h3>📊 Top Deelnemers</h3>
+            <h3>📊 Top 5 Deelnemers</h3>
             <p>Huidige live stand van de toto.</p>
           </div>
           <div className="card-content">

@@ -106,13 +106,12 @@
 /* --- 5. Mobile Override Refinements --- */
 @media (max-width: 1024px) {
     .toast-stack-container {
-        right: 15px;
-        left: 15px;
         align-items: center;
+        width: 100%;
     }
     
     .floating-sync-bar, .status-toast {
-        width: 100%;
+        width: 80%;
         justify-content: center;
     }
 }
