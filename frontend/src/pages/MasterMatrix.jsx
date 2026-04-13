@@ -139,7 +139,7 @@ export default function MasterMatrix() {
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredMatches.map(match => (
+                        {data.matches.map(match => (
                             <tr key={match.id} id={match.stage}>
                                 <td className="sticky-col match-cell">
                                     <div className="matrix-match-info">
