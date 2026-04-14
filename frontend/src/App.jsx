@@ -11,6 +11,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import './App.css'; // Make sure the CSS is imported here!
 import LeaderboardPage from './pages/LeaderboardPage';
 import Top4SelectionPage from './pages/Top4SelectionPage';
+import ResetPassword from './pages/ResetPassword';
 
 function App() {
   return (
@@ -19,8 +20,9 @@ function App() {
         {/* Everything inside this Route gets the Navbar */}
         <Route element={<Layout />}>
           <Route path="/" element={<ProtectedRoute><StartPage /></ProtectedRoute>} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/inloggen" element={<LoginPage />} />
+          <Route path="/registreer" element={<RegisterPage />} />
+          <Route path="/reset-wachtwoord/:token" element={<ResetPassword />} />
           <Route path="/voorspellen" element={<ProtectedRoute><Predictions /></ProtectedRoute>} />
           <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
           <Route path="/uitslagen" element={<ProtectedRoute><AdminMatchResults /></ProtectedRoute>} />

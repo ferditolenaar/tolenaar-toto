@@ -48,7 +48,7 @@ export default function Layout() {
   const handleLogout = () => {
     pb.authStore.clear();
     setIsMenuOpen(false);
-    navigate('/login');
+    navigate('/inloggen');
   };
 
   return (
@@ -120,7 +120,7 @@ export default function Layout() {
                 )}
               </div>
             ) : (
-              <NavLink to="/login" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>Login</NavLink>
+              <NavLink to="/inloggen" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>Login</NavLink>
             )}
           </div>
 

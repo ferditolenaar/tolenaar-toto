@@ -11,7 +11,7 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
 
     if (!isLoggedIn) {
         // Redirect to login, but save the current location so we can go back after login
-        return <Navigate to="/login" state={{ from: location }} replace />;
+        return <Navigate to="/inloggen" state={{ from: location }} replace />;
     }
 
     if (adminOnly && user?.role !== 'admin') {

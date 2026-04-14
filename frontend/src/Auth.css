@@ -63,7 +63,10 @@
 
 .auth-footer {
   margin-top: 1.5rem;
-  text-align: center;
+  color: #666;
+}
+
+.password-footer {
   color: #666;
 }
 
@@ -91,7 +94,6 @@
 /* The Link Styling */
 .auth-footer {
   margin-top: 1.5rem;
-  text-align: center;
   color: #666;
   font-size: 0.9rem;
 }
@@ -101,7 +103,6 @@
   /* Electric Blue */
   text-decoration: none;
   font-weight: 500;
-  text-transform: uppercase;
   margin-left: 5px;
   transition: color 0.2s ease;
   border-bottom: 2px solid transparent;
@@ -112,6 +113,29 @@
   /* FIFA Red */
   border-bottom: 2px solid #dc3545;
 }
+
+/* The Link Styling */
+.password-footer {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.password-footer a {
+  color: #00d4ff;
+  /* Electric Blue */
+  text-decoration: none;
+  font-weight: 500;
+  margin-left: 5px;
+  transition: color 0.2s ease;
+  border-bottom: 2px solid transparent;
+}
+
+.password-footer a:hover {
+  color: #dc3545;
+  /* FIFA Red */
+  border-bottom: 2px solid #dc3545;
+}
+
 
 /* Submit Button Style */
 .submit-btn {

@@ -44,7 +44,13 @@ export default function RegisterPage() {
 
   const handleGoogleRegister = async () => {
     try {
-      const authData = await pb.collection('users').authWithOAuth2({ provider: 'google' });
+      const authData = await pb.collection('users').authWithOAuth2({
+        provider: 'google',
+        // This is the magic line:
+        urlQueryParameters: {
+          prompt: 'select_account',
+        },
+      });
 
       // If this is a brand new user, let's grab their name from Google
       if (authData.meta.isNew) {
@@ -146,7 +152,7 @@ export default function RegisterPage() {
         </div>
 
         <p className="auth-footer">
-          Heb je al een account? <Link to="/login">Log hier in</Link>
+          Heb je al een account? <Link to="/inloggen">Log hier in</Link>
         </p>
       </div>
     </div>

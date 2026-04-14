@@ -21,9 +21,33 @@ export default function LoginPage() {
     }
   }
 
+  const requestPasswordReset = async () => {
+    if (!formData.email) {
+      alert("Voer eerst je e-mailadres in.");
+      return;
+    }
+
+    try {
+      await pb.collection('users').requestPasswordReset(formData.email);
+      alert("Wachtwoordherstel e-mail verzonden! Controleer je inbox.");
+    } catch (err) {
+      alert("Fout: " + err.message);
+    }
+  };
+
   const handleGoogleLogin = async () => {
     try {
-      await pb.collection('users').authWithOAuth2({ provider: 'google' });
+      await pb.collection('users').authWithOAuth2({
+        provider: 'google',
+        // Explicitly pass it here as well
+        queryParams: {
+          prompt: 'select_account',
+        },
+        // Keep this as a backup
+        urlQueryParameters: {
+          prompt: 'select_account',
+        },
+      });
       navigate('/');
     } catch (err) {
       console.error("Google Auth Failed", err);
@@ -56,6 +80,10 @@ export default function LoginPage() {
               onChange={e => setFormData({ ...formData, password: e.target.value })}
               required
             />
+            <p className="password-footer">
+              Wachtwoord vergeten?
+              <Link to="#" onClick={requestPasswordReset}>Klik hier</Link>
+            </p>
           </div>
 
           <button type="submit" className="submit-btn" disabled={loading}>
@@ -76,8 +104,9 @@ export default function LoginPage() {
         </div>
 
         <p className="auth-footer">
-          Nog geen account? <Link to="/register">Registreer hier</Link>
+          Nog geen account? <Link to="/registreer">Registreer hier</Link>
         </p>
+
       </div>
     </div>
   );
