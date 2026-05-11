@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react'; // Added useRef
 import pb from '../lib/pocketbase';
 import { Link } from 'react-router-dom';
 import '../MasterGrid.css';
@@ -10,21 +10,10 @@ export default function MasterMatrix() {
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
 
+    // 1. Create a Ref Map to store references to the user header cells
+    const userRefs = useRef(new Map());
+
     const stageOrder = ['Groepsfase', 'Zestiende Finale', 'Achtste Finale', 'Kwartfinale', 'Halve Finale', 'Troostfinale', 'Finale'];
-
-    const [visibleStage, setVisibleStage] = useState(stageOrder[0]);
-
-    // Stages for the filter buttons
-    const navStages = [
-        'Groepsfase',
-        'Zestiende Finale',
-        'Achtste Finale',
-        'Kwartfinale',
-        'Halve Finale'
-    ];
-
-    const user = pb.authStore.model;
-    const isAdmin = user?.role === 'admin';
 
     useEffect(() => {
         const fetchMatrixData = async () => {
@@ -38,7 +27,7 @@ export default function MasterMatrix() {
                     pb.collection('users').getFullList({ sort: 'order' }),
                     pb.collection('predictions').getFullList({ requestKey: null })
                 ]);
-                // Keep your duplicated user set for testing large grids
+                
                 setData({
                     matches: allMatches,
                     users: allUsers,
@@ -53,54 +42,37 @@ export default function MasterMatrix() {
         fetchMatrixData();
     }, []);
 
-    const filteredMatches = useMemo(() => {
-        let matches = [];
-        if (activeStage === 'Finales') {
-            matches = data.matches.filter(m => m.stage === 'Finale' || m.stage === 'Troostfinale');
-        } else {
-            matches = data.matches.filter(m => m.stage?.trim() === activeStage.trim());
-        }
-        return matches
-    }, [data.matches, activeStage]);
+    // 2. Sorting logic moved to a separate Memo (Not filtering, just sorting)
+    const sortedUsers = useMemo(() => {
+        return [...data.users].sort((a, b) => 
+            (a.order || 0) - (b.order || 0) || 
+            (a.lastName || "").localeCompare(b.lastName || "")
+        );
+    }, [data.users]);
 
+    // 3. The Scrolling Logic
     useEffect(() => {
-        const observer = new IntersectionObserver(
-            (entries) => {
-                entries.forEach((entry) => {
-                    if (entry.isIntersecting) {
-                        let stageId = entry.target.id;
-                        if (['Troostfinale', 'Finale'].includes(stageId)) {
-                            stageId = 'Halve Finale';
-                        }
-                        setVisibleStage(stageId);
-                    }
-                });
-            },
-            { rootMargin: "-10px 0px -80% 0px", threshold: 0 }
+        if (!searchTerm.trim()) return;
+
+        // Find the first user that matches the search term
+        const targetUser = sortedUsers.find(u => 
+            `${u.firstName} ${u.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
         );
 
-        stageOrder.forEach((stage) => {
-            const el = document.getElementById(stage);
-            if (el) observer.observe(el);
-        });
-
-        return () => observer.disconnect();
-    }, [filteredMatches]);
-
-    const filteredUsers = useMemo(() => {
-        return [...data.users]
-            .filter(u => `${u.firstName} ${u.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()))
-            // Sort by 'order' primarily, then lastName
-            .sort((a, b) => (a.order || 0) - (b.order || 0) || a.lastName.localeCompare(b.lastName));
-    }, [data.users, searchTerm]);
+        if (targetUser && userRefs.current.has(targetUser.id)) {
+            const element = userRefs.current.get(targetUser.id);
+            element.scrollIntoView({
+                behavior: 'smooth',
+                block: 'nearest', // Don't scroll vertically
+                inline: 'center'  // Center the found person in the view
+            });
+        }
+    }, [searchTerm, sortedUsers]);
 
     const handleOrderChange = async (userId, newOrder) => {
         const val = parseInt(newOrder) || 0;
         try {
-            // 1. Update PocketBase
             await pb.collection('users').update(userId, { order: val });
-
-            // 2. Update local state to trigger the useMemo sort
             setData(prev => ({
                 ...prev,
                 users: prev.users.map(u => u.id === userId ? { ...u, order: val } : u)
@@ -113,10 +85,7 @@ export default function MasterMatrix() {
     const handlePaidToggle = async (userId, currentStatus) => {
         const newStatus = !currentStatus;
         try {
-            // 1. Update PocketBase
             await pb.collection('users').update(userId, { paid: newStatus });
-
-            // 2. Update local state
             setData(prev => ({
                 ...prev,
                 users: prev.users.map(u => u.id === userId ? { ...u, paid: newStatus } : u)
@@ -125,6 +94,10 @@ export default function MasterMatrix() {
             console.error("Failed to update paid status:", err);
         }
     };
+
+    if (loading) return <div>Laden...</div>;
+
+    const isAdmin = pb.authStore.model?.role === 'admin';
 
     return (
         <div className="matrix-main-layout">
@@ -147,15 +120,19 @@ export default function MasterMatrix() {
                 <table className="master-matrix">
                     <thead>
                         <tr>
-                            {/* FIXED: Top-Left Anchor Cell */}
                             <th className="sticky-col matrix-header-cell">Match</th>
 
-                            {filteredUsers.map((user, index) => (
-                                <th key={`${user.id}-${index}`} className={`user-header ${user.paid ? 'status-paid' : 'status-unpaid'}`}>
+                            {/* Use sortedUsers (all of them) instead of filteredUsers */}
+                            {sortedUsers.map((user) => (
+                                <th 
+                                    key={user.id} 
+                                    // 4. Assign the ref to the header cell
+                                    ref={el => userRefs.current.set(user.id, el)}
+                                    className={`user-header ${user.paid ? 'status-paid' : 'status-unpaid'}`}
+                                >
                                     <div className="header-initials">
                                         {isAdmin && (
                                             <div className="admin-controls-wrapper">
-                                                {/* Order Input */}
                                                 <input
                                                     type="number"
                                                     className="admin-order-input"
@@ -163,7 +140,6 @@ export default function MasterMatrix() {
                                                     onBlur={(e) => handleOrderChange(user.id, e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleOrderChange(user.id, e.target.value)}
                                                 />
-                                                {/* Paid Checkbox */}
                                                 <label className="admin-paid-checkbox">
                                                     <input
                                                         type="checkbox"
@@ -192,31 +168,26 @@ export default function MasterMatrix() {
                                     </div>
                                 </td>
 
-                                {filteredUsers.map((user, index) => {
+                                {sortedUsers.map((user) => {
                                     const pred = data.predictions.find(p => p.match === match.id && p.user === user.id);
-
-                                    // 1. Check HT Correctness (Match home_ht/away_ht vs Pred pred_home_ht/pred_away_ht)
+                                    
                                     const htCorrect = pred &&
                                         pred.pred_home_ht === match.home_ht &&
                                         pred.pred_away_ht === match.away_ht;
 
-                                    // 2. Check FT Correctness
                                     const ftCorrect = pred &&
                                         pred.pred_home_ft === match.home_ft &&
                                         pred.pred_away_ft === match.away_ft;
 
-                                    // 3. Check Toto Correctness (match.result vs pred.pred_toto)
                                     const totoCorrect = pred && pred.pred_toto === match.match_toto;
 
                                     return (
-                                        <td key={`cell-${match.id}-${index}`} className="pred-cell-matrix">
+                                        <td key={`cell-${match.id}-${user.id}`} className="pred-cell-matrix">
                                             <div className="matrix-score-grid">
                                                 <div className="score-row">
-                                                    {/* Displaying Home-Away format for HT */}
                                                     <span className={`s-mini ht ${htCorrect ? 'is-correct' : ''}`}>
                                                         {pred ? `${pred.pred_home_ht}-${pred.pred_away_ht}` : '-'}
                                                     </span>
-                                                    {/* Displaying Home-Away format for FT */}
                                                     <span className={`s-mini ft ${ftCorrect ? 'is-correct' : ''}`}>
                                                         {pred ? `${pred.pred_home_ft}-${pred.pred_away_ft}` : '-'}
                                                     </span>

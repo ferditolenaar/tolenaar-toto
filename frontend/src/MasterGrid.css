@@ -212,7 +212,7 @@ body {
     display: flex;
     align-items: center;
     gap: 4px;
-    font-size: 9px;
+    font-size: 12px;
     cursor: pointer;
     text-transform: uppercase;
     color: #666;
@@ -235,7 +235,7 @@ body {
 
 .admin-order-input {
     width: 35px;
-    font-size: 10px;
+    font-size: 1rem;
     padding: 2px;
     border: 1px solid #ccc;
     border-radius: 3px;
