@@ -23,7 +23,7 @@ export const calculateMatchPoints = (pred, match, r) => {
         p += Number(isGroup ? r.points_ft_group : r.points_ft_finals) || 0;
     }
 
-    const officialToto = calculateOfficialToto(match.home_ft, match.away_ft);
+    const officialToto = String(match.match_toto);
     if (String(pred.pred_toto) === String(officialToto)) {
         p += Number(isGroup ? r.points_toto_group : r.points_toto_finals) || 0;
     }

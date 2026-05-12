@@ -229,10 +229,6 @@ body {
     /* Very light red */
 }
 
-.user-header.status-paid {
-    /* Normal or slightly green */
-}
-
 .admin-order-input {
     width: 40px;
     font-size: 1rem;
@@ -260,4 +256,5 @@ div.admin-controls-wrapper > input::-webkit-inner-spin-button {
 /* Firefox */
 div.admin-controls-wrapper > input[type=number] {
     -moz-appearance: textfield;
+    appearance: textfield;
 }
