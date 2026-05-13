@@ -1,5 +1,4 @@
 /* --- 1. Global Viewport Lockdown --- */
-/* This prevents the whole page from scrolling so only the table moves */
 html,
 body {
     height: 100%;
@@ -11,7 +10,6 @@ body {
     display: flex;
     flex-direction: column;
     height: calc(100vh - 70px);
-    /* Full height minus DeRoTo Navbar */
     width: 100%;
     background: #f8f9fa;
 }
@@ -58,25 +56,18 @@ body {
     border-color: #00d4ff;
 }
 
+/* --- 3. Scroll Container & Rainbow Bar --- */
 .matrix-scroll-container {
     flex-grow: 1;
     overflow: auto;
     background: white;
     position: relative;
-    /* CRITICAL: Remove all padding/margins that cause the "leak" */
     padding: 0 !important;
     margin: 0 !important;
     border: 1px solid #eee;
 }
 
-/* Ensure the table itself fills the space without gaps */
-.master-matrix {
-    border-collapse: separate;
-    border-spacing: 0;
-    width: max-content;
-    margin: 0;
-}
-
+/* The Rainbow Line stays at the absolute top of the scroll area */
 .matrix-scroll-container.tournament-card::before {
     content: "";
     position: sticky;
@@ -85,61 +76,133 @@ body {
     width: 100%;
     height: 6px;
     background: linear-gradient(90deg, #007bff, #dc3545, #ffc107, #c6f6d5);
-    z-index: 2000;
+    z-index: 2100;
     display: block;
 }
 
+/* --- 4. THE STICKY HEADER STACK --- */
+
+/* Base Table Setup */
 .master-matrix {
     border-collapse: separate;
     border-spacing: 0;
-    table-layout: fixed;
     width: max-content;
+    margin: 0;
+    table-layout: fixed;
 }
 
-.matrix-header-cell {
+/* ROW 1: Identity & Admin (Height: 80px) */
+.user-header, 
+.matrix-header-cell.corner-label {
     position: sticky;
-    top: 6px;
-    left: 0;
-    background: #f1f3f5 !important;
-    z-index: 1500;
-    font-weight: 900;
-    text-align: center;
-    border-bottom: 2px solid #dee2e6;
-    border-right: 2px solid #dee2e6;
-}
-
-.user-header {
-    position: sticky;
-    top: 6px;
+    top: 6px; /* Below 6px rainbow line */
+    height: 80px; 
     background: #2c3e50 !important;
     color: #00d4ff;
     z-index: 1000;
-    width: 90px;
-    min-width: 90px;
-    padding: 12px 0;
+    width: 100px;
+    min-width: 100px;
     font-size: 0.75rem;
     font-weight: 800;
     text-align: center;
-    border-bottom: 2px solid #34495e;
+    border-bottom: 1px solid #34495e;
     border-right: 1px solid #34495e;
 }
 
-.sticky-col.match-cell {
+/* ROW 2: Nudge / Stage Row (Height: 45px) */
+.nudge-cell,
+.stage-label-cell {
+    position: sticky;
+    top: 86px; /* Rainbow (6) + Row 1 (80) */
+    height: 45px;
+    z-index: 900;
+    background: #f1f3f5 !important;
+    border-bottom: 3px solid #2c3e50; /* Thick line to separate from data */
+    border-right: 1px solid #dee2e6;
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* --- 5. THE STICKY LEFT COLUMN --- */
+
+.sticky-col {
     position: sticky;
     left: 0;
-    background: #f8f9fa !important;
     z-index: 500;
+}
+
+/* Corner Priority: Top row left cell */
+.matrix-header-cell.corner-label {
+    left: 0;
+    z-index: 2000 !important;
+    background: #f1f3f5 !important;
+    color: #2c3e50;
+}
+
+/* Corner Priority: Second row left cell */
+.stage-label-cell {
+    left: 0;
+    z-index: 1900 !important;
+    font-size: 0.7rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: #27ae60;
+}
+
+/* Body Sticky Column: Match info */
+.sticky-col.match-cell {
+    background: #f8f9fa !important;
     width: 130px;
     padding: 10px;
     border-right: 2px solid #dee2e6;
     border-bottom: 1px solid #eee;
 }
 
+/* --- 6. Internal Elements Alignment --- */
+
+.header-column-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.name-stack {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+}
+
+.admin-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    justify-content: center; /* This keeps them close and centered */
+    margin-bottom: 4px;
+}
+
+.nudge-pill {
+    padding: 2px 10px;
+    border-radius: 50px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: white;
+    min-width: 45px;
+}
+
+.nudge-pill.incomplete { background-color: #f39c12; }
+.nudge-pill.complete { background-color: #27ae60; }
+
+/* --- 7. Prediction Cells & Content --- */
+
 .pred-cell-matrix {
-    width: 90px;
+    width: 100px;
     text-align: center;
     vertical-align: middle;
     padding: 8px 0;
+    border-right: 1px solid #eee;
+    border-bottom: 1px solid #eee;
 }
 
 .matrix-score-grid {
@@ -158,29 +221,6 @@ body {
     background: #c6f6d5 !important;
 }
 
-/* The Toto Marker */
-.s-toto {
-    font-size: 0.9rem;
-    width: 20px;
-    height: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.s-toto.marker-correct {
-    background: rgba(40, 167, 69, 0.1);
-    border: 2px solid #c6f6d5;
-    border-radius: 50%;
-    color: #c6f6d5;
-}
-
-.marker-wrong {
-    color: #dc3545;
-    opacity: 0.4;
-}
-
-/* Match info inside sticky col */
 .matrix-match-info {
     display: flex;
     flex-direction: column;
@@ -188,73 +228,47 @@ body {
     gap: 2px;
 }
 
-.m-code {
-    font-weight: 800;
-}
+.m-code { font-weight: 800; }
+.m-res { color: #007bff; font-weight: 900; font-size: 0.75rem; }
 
-.m-res {
-    color: #007bff;
-    font-weight: 900;
-    font-size: 0.75rem;
-}
-
-.admin-controls-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    margin-bottom: 8px;
-    padding-bottom: 5px;
-    border-bottom: 1px dashed rgba(255, 255, 255, 0.2);
-}
-
-.admin-paid-checkbox {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 12px;
-    cursor: pointer;
-    text-transform: uppercase;
-    color: #666;
-}
-
-.admin-paid-checkbox input {
-    margin: 0;
-    cursor: pointer;
-}
-
-/* Optional: Subtle background color to differentiate paid vs unpaid columns */
-.user-header.status-unpaid {
-    background-color: rgba(255, 0, 0, 0.05);
-    /* Very light red */
-}
+/* --- 8. Admin & Input Cleanup --- */
 
 .admin-order-input {
-    width: 40px;
+    width: 36px !important;
+    height: 20px !important;
     font-size: 1rem;
-    padding: 2px;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    display: block;
-    margin: 0 auto 5px auto;
     text-align: center;
-    background: rgba(255, 255, 255, 0.8);
-}
-
-.admin-order-input:focus {
-    outline: 2px solid #007bff;
-    background: #fff;
-}
-
-/* Chrome, Safari, Edge, Opera */
-div.admin-controls-wrapper > input::-webkit-outer-spin-button,
-div.admin-controls-wrapper > input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: white;
     margin: 0;
 }
 
-/* Firefox */
-div.admin-controls-wrapper > input[type=number] {
-    -moz-appearance: textfield;
-    appearance: textfield;
+/* Remove Arrows from Number Inputs */
+.no-spin::-webkit-inner-spin-button, 
+.no-spin::-webkit-outer-spin-button,
+.admin-order-input::-webkit-inner-spin-button,
+.admin-order-input::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
+
+.no-spin, .admin-order-input { 
+    -moz-appearance: textfield; 
+    appearance: textfield; 
+}
+
+.admin-toggle-bar {
+    margin-top: 5px;
+}
+
+.admin-toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #666;
+    text-transform: uppercase;
+    cursor: pointer;
 }

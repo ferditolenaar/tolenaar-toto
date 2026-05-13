@@ -26,7 +26,7 @@ html {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  overflow-x: hidden;
+  overflow-x: clip;
   width: 100%;
 }
 
@@ -427,4 +427,8 @@ span.voorspel {
     box-shadow: none;
     bottom: auto;
   }
+}
+
+.stage-header-title {
+  padding-bottom: 15px;;
 }

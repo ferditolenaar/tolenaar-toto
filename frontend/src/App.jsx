@@ -24,11 +24,12 @@ function App() {
           <Route path="/registreer" element={<RegisterPage />} />
           <Route path="/reset-wachtwoord/:token" element={<ResetPassword />} />
           <Route path="/voorspellen" element={<ProtectedRoute><Predictions /></ProtectedRoute>} />
-          <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
-          <Route path="/uitslagen" element={<ProtectedRoute><AdminMatchResults /></ProtectedRoute>} />
-          <Route path="/overzicht" element={<ProtectedRoute><MasterMatrix /></ProtectedRoute>} />
-          <Route path="/stand" element={<ProtectedRoute><LeaderboardPage /></ProtectedRoute>} />
           <Route path="/top4" element={<ProtectedRoute><Top4SelectionPage /></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute adminOnly="true"><AdminPage /></ProtectedRoute>} />
+          <Route path="/uitslagen" element={<ProtectedRoute adminOnly="true"><AdminMatchResults /></ProtectedRoute>} />
+          <Route path="/overzicht" element={<ProtectedRoute adminOnly="true"><MasterMatrix /></ProtectedRoute>} />
+          <Route path="/stand" element={<ProtectedRoute adminOnly="true"><LeaderboardPage /></ProtectedRoute>} />
+
         </Route>
       </Routes>
     </BrowserRouter>

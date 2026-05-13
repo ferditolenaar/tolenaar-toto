@@ -1,16 +1,18 @@
-import React, { useEffect, useState, useMemo, useRef } from 'react'; // Added useRef
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import pb from '../lib/pocketbase';
-import { Link } from 'react-router-dom';
 import '../MasterGrid.css';
 import '../Features.css';
 
+// --- SIMULATION SETTINGS ---
+// Set to null for live behavior. 
+// Set to 'Zestiende Finale' (or any stage name) to see the transition.
+const SIMULATED_STAGE = null;
+
 export default function MasterMatrix() {
     const [data, setData] = useState({ matches: [], users: [], predictions: [] });
-    const [activeStage, setActiveStage] = useState('Groepsfase');
     const [searchTerm, setSearchTerm] = useState('');
+    const [hideCompleted, setHideCompleted] = useState(false);
     const [loading, setLoading] = useState(true);
-
-    // 1. Create a Ref Map to store references to the user header cells
     const userRefs = useRef(new Map());
 
     const stageOrder = ['Groepsfase', 'Zestiende Finale', 'Achtste Finale', 'Kwartfinale', 'Halve Finale', 'Troostfinale', 'Finale'];
@@ -27,12 +29,7 @@ export default function MasterMatrix() {
                     pb.collection('users').getFullList({ sort: 'order' }),
                     pb.collection('predictions').getFullList({ requestKey: null })
                 ]);
-                
-                setData({
-                    matches: allMatches,
-                    users: allUsers,
-                    predictions: allPreds
-                });
+                setData({ matches: allMatches, users: allUsers, predictions: allPreds });
             } catch (err) {
                 console.error("Matrix fetch error", err);
             } finally {
@@ -42,61 +39,70 @@ export default function MasterMatrix() {
         fetchMatrixData();
     }, []);
 
-    // 2. Sorting logic moved to a separate Memo (Not filtering, just sorting)
+    const isStageOpen = (stageName, allMatches) => {
+        // If we are simulating a specific stage, any stage before it in the list is "Closed"
+        if (SIMULATED_STAGE) {
+            const simIndex = stageOrder.indexOf(SIMULATED_STAGE);
+            const stageIndex = stageOrder.indexOf(stageName);
+            return stageIndex >= simIndex;
+        }
+
+        if (!allMatches || allMatches.length === 0) return true;
+        const stageMatches = allMatches.filter(m => m.stage === stageName);
+        if (stageMatches.length === 0) return true;
+        const earliest = stageMatches.reduce((e, c) => new Date(c.match_date) < new Date(e) ? c.match_date : e, stageMatches[0].match_date);
+        return new Date().getTime() < new Date(earliest).getTime() - (30 * 60 * 1000);
+    };
+
     const sortedUsers = useMemo(() => {
-        return [...data.users].sort((a, b) => 
-            (a.order || 0) - (b.order || 0) || 
-            (a.lastName || "").localeCompare(b.lastName || "")
-        );
+        return [...data.users].sort((a, b) => (a.order || 0) - (b.order || 0) || (a.lastName || "").localeCompare(b.lastName || ""));
     }, [data.users]);
 
-    // 3. The Scrolling Logic
-    useEffect(() => {
-        if (!searchTerm.trim()) return;
+    // This determines which stage the nudge pills are counting
+    const activeNudgeStage = useMemo(() => {
+        if (SIMULATED_STAGE) return SIMULATED_STAGE;
+        return stageOrder.find(s => isStageOpen(s, data.matches)) || "Toernooi";
+    }, [data.matches]);
 
-        // Find the first user that matches the search term
-        const targetUser = sortedUsers.find(u => 
-            `${u.firstName} ${u.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
-        );
+    const userStats = useMemo(() => {
+        const stats = {};
+        const targetMatches = data.matches.filter(m => m.stage === activeNudgeStage);
+        sortedUsers.forEach(user => {
+            const completed = data.predictions.filter(p => p.user === user.id && targetMatches.some(m => m.id === p.match)).length;
+            stats[user.id] = {
+                completed,
+                total: targetMatches.length,
+                isFinished: targetMatches.length > 0 && completed === targetMatches.length
+            };
+        });
+        return stats;
+    }, [data.predictions, data.matches, sortedUsers, activeNudgeStage]);
 
-        if (targetUser && userRefs.current.has(targetUser.id)) {
-            const element = userRefs.current.get(targetUser.id);
-            element.scrollIntoView({
-                behavior: 'smooth',
-                block: 'nearest', // Don't scroll vertically
-                inline: 'center'  // Center the found person in the view
-            });
-        }
-    }, [searchTerm, sortedUsers]);
+    const filteredUsers = useMemo(() => {
+        if (!hideCompleted) return sortedUsers;
+        return sortedUsers.filter(user => !userStats[user.id]?.isFinished);
+    }, [sortedUsers, hideCompleted, userStats]);
+
+    // Matches to show in the table (those that are NOT open)
+    const visibleMatches = useMemo(() => data.matches.filter(m => !isStageOpen(m.stage, data.matches)), [data.matches]);
 
     const handleOrderChange = async (userId, newOrder) => {
         const val = parseInt(newOrder) || 0;
         try {
             await pb.collection('users').update(userId, { order: val });
-            setData(prev => ({
-                ...prev,
-                users: prev.users.map(u => u.id === userId ? { ...u, order: val } : u)
-            }));
-        } catch (err) {
-            console.error("Failed to update order:", err);
-        }
+            setData(prev => ({ ...prev, users: prev.users.map(u => u.id === userId ? { ...u, order: val } : u) }));
+        } catch (err) { console.error(err); }
     };
 
     const handlePaidToggle = async (userId, currentStatus) => {
         const newStatus = !currentStatus;
         try {
             await pb.collection('users').update(userId, { paid: newStatus });
-            setData(prev => ({
-                ...prev,
-                users: prev.users.map(u => u.id === userId ? { ...u, paid: newStatus } : u)
-            }));
-        } catch (err) {
-            console.error("Failed to update paid status:", err);
-        }
+            setData(prev => ({ ...prev, users: prev.users.map(u => u.id === userId ? { ...u, paid: newStatus } : u) }));
+        } catch (err) { console.error(err); }
     };
 
     if (loading) return <div>Laden...</div>;
-
     const isAdmin = pb.authStore.model?.role === 'admin';
 
     return (
@@ -105,84 +111,85 @@ export default function MasterMatrix() {
                 <h1 className="tournament-title">Matrix Overzicht</h1>
                 <div className="matrix-controls-centered">
                     <div className="search-wrapper-centered">
-                        <input
-                            type="text"
-                            placeholder="Zoek een deelnemer..."
-                            className="matrix-search-input"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
+                        <input type="text" placeholder="Zoek een deelnemer..." className="matrix-search-input" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                     </div>
+                    {isAdmin && (
+                        <div className="admin-toggle-bar">
+                            <label className="admin-toggle-label">
+                                <input type="checkbox" checked={hideCompleted} onChange={(e) => setHideCompleted(e.target.checked)} />
+                                Verberg voltooide deelnemers
+                            </label>
+                        </div>
+                    )}
                 </div>
             </header>
 
             <div className="matrix-scroll-container tournament-card">
                 <table className="master-matrix">
                     <thead>
+                        {/* ROW 1: USER IDENTITY & ADMIN */}
                         <tr>
-                            <th className="sticky-col matrix-header-cell">Match</th>
-
-                            {/* Use sortedUsers (all of them) instead of filteredUsers */}
-                            {sortedUsers.map((user) => (
-                                <th 
-                                    key={user.id} 
-                                    // 4. Assign the ref to the header cell
-                                    ref={el => userRefs.current.set(user.id, el)}
-                                    className={`user-header ${user.paid ? 'status-paid' : 'status-unpaid'}`}
-                                >
-                                    <div className="header-initials">
+                            <th className="sticky-col matrix-header-cell corner-label">
+                                Match
+                            </th>
+                            {filteredUsers.map((user) => (
+                                <th key={user.id} className={`user-header name-cell ${user.paid ? 'status-paid' : 'status-unpaid'}`}>
+                                    <div className="header-identity-stack">
                                         {isAdmin && (
-                                            <div className="admin-controls-wrapper">
+                                            <div className="admin-row">
                                                 <input
                                                     type="number"
-                                                    className="admin-order-input"
+                                                    className="admin-order-input no-spin"
                                                     defaultValue={user.order || 0}
                                                     onBlur={(e) => handleOrderChange(user.id, e.target.value)}
-                                                    onKeyDown={(e) => e.key === 'Enter' && handleOrderChange(user.id, e.target.value)}
                                                 />
-                                                <label className="admin-paid-checkbox">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={user.paid || false}
-                                                        onChange={() => handlePaidToggle(user.id, user.paid)}
-                                                    />
-                                                    <span className="checkbox-label">Betaald</span>
-                                                </label>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={user.paid || false}
+                                                    onChange={() => handlePaidToggle(user.id, user.paid)}
+                                                />
                                             </div>
                                         )}
-                                        <span className="f-name">{user.firstName}</span>
-                                        <br />
-                                        <span className="l-name">{user.lastName}</span>
+                                        <div className="name-stack">
+                                            <span className="f-name">{user.firstName}</span>
+                                            <span className="l-name">{user.lastName}</span>
+                                        </div>
+                                    </div>
+                                </th>
+                            ))}
+                        </tr>
+
+                        {/* ROW 2: CURRENT STAGE PROGRESS (The Nudge Row) */}
+                        <tr className="nudge-row-header">
+                            <th className="sticky-col matrix-header-cell stage-label-cell">
+                                {activeNudgeStage}
+                            </th>
+                            {filteredUsers.map((user) => (
+                                <th key={`nudge-${user.id}`} className="nudge-cell">
+                                    <div className={`nudge-pill ${userStats[user.id].isFinished ? 'complete' : 'incomplete'}`}>
+                                        {userStats[user.id].completed} / {userStats[user.id].total}
                                     </div>
                                 </th>
                             ))}
                         </tr>
                     </thead>
                     <tbody>
-                        {data.matches.map(match => (
-                            <tr key={match.id} id={match.stage}>
+                        {visibleMatches.map(match => (
+                            <tr key={match.id}>
                                 <td className="sticky-col match-cell">
                                     <div className="matrix-match-info">
                                         <span className="m-code">{match.expand?.home_team?.code} - {match.expand?.away_team?.code}</span>
                                         {match.result && <span className="m-res">({match.result})</span>}
                                     </div>
                                 </td>
-
-                                {sortedUsers.map((user) => {
+                                {filteredUsers.map((user) => {
                                     const pred = data.predictions.find(p => p.match === match.id && p.user === user.id);
-                                    
-                                    const htCorrect = pred &&
-                                        pred.pred_home_ht === match.home_ht &&
-                                        pred.pred_away_ht === match.away_ht;
-
-                                    const ftCorrect = pred &&
-                                        pred.pred_home_ft === match.home_ft &&
-                                        pred.pred_away_ft === match.away_ft;
-
+                                    const htCorrect = pred && pred.pred_home_ht === match.home_ht && pred.pred_away_ht === match.away_ht;
+                                    const ftCorrect = pred && pred.pred_home_ft === match.home_ft && pred.pred_away_ft === match.away_ft;
                                     const totoCorrect = pred && pred.pred_toto === match.match_toto;
 
                                     return (
-                                        <td key={`cell-${match.id}-${user.id}`} className="pred-cell-matrix">
+                                        <td key={`${match.id}-${user.id}`} className="pred-cell-matrix">
                                             <div className="matrix-score-grid">
                                                 <div className="score-row">
                                                     <span className={`s-mini ht ${htCorrect ? 'is-correct' : ''}`}>
