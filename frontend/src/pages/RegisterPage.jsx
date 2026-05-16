@@ -46,27 +46,42 @@ export default function RegisterPage() {
     try {
       const authData = await pb.collection('users').authWithOAuth2({
         provider: 'google',
-        // This is the magic line:
         urlQueryParameters: {
           prompt: 'select_account',
         },
       });
 
-      // If this is a brand new user, let's grab their name from Google
-      if (authData.meta.isNew) {
-        const fullNames = authData.meta.name.split(' ');
-        const fName = fullNames[0] || '';
-        const lName = fullNames.slice(1).join(' ') || '';
+      // 1. Safely extract separate first and last names directly from Google's raw metadata
+      const rawUser = authData.meta?.rawUser || {};
+      let fName = rawUser.given_name || '';
+      let lName = rawUser.family_name || '';
 
-        await pb.collection('users').update(authData.record.id, {
-          firstName: fName,
-          lastName: lName,
-        });
+      // Fallback: Only use the combined string split if Google's native fields are missing
+      if (!fName && !lName && authData.meta?.name) {
+        const fullNames = authData.meta.name.split(' ');
+        fName = fullNames[0] || '';
+        lName = fullNames.slice(1).join(' ') || '';
       }
 
+      // 2. Inspect the actual database record returned from this authentication session
+      const currentRecord = authData.record || {};
+      const fieldsAreMissingInDb = !currentRecord.firstName || !currentRecord.lastName;
+
+      // 3. Auto-Heal: Update if the user is flagged as brand new OR if fields are empty in DB
+      if (authData.meta?.isNew || fieldsAreMissingInDb) {
+        if (fName || lName) {
+          await pb.collection('users').update(currentRecord.id, {
+            firstName: fName,
+            lastName: lName,
+          });
+        }
+      }
+
+      // Smoothly redirect to home layout
       navigate('/');
     } catch (err) {
-      console.error("Google Registration Failed", err);
+      console.error("Google Registration Failed:", err);
+      alert("Er is iets fout gegaan tijdens het registreren met Google: " + err.message);
     }
   };
 

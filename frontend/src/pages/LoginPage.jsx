@@ -37,20 +37,46 @@ export default function LoginPage() {
 
   const handleGoogleLogin = async () => {
     try {
-      await pb.collection('users').authWithOAuth2({
+      const authData = await pb.collection('users').authWithOAuth2({
         provider: 'google',
-        // Explicitly pass it here as well
         queryParams: {
           prompt: 'select_account',
         },
-        // Keep this as a backup
         urlQueryParameters: {
           prompt: 'select_account',
         },
       });
+
+      // 1. Safely extract separate first and last names directly from Google's raw metadata
+      const rawUser = authData.meta?.rawUser || {};
+      let fName = rawUser.given_name || '';
+      let lName = rawUser.family_name || '';
+
+      // Fallback: Only use a combined string split if Google's native fields are missing
+      if (!fName && !lName && authData.meta?.name) {
+        const fullNames = authData.meta.name.split(' ');
+        fName = fullNames[0] || '';
+        lName = fullNames.slice(1).join(' ') || '';
+      }
+
+      // 2. Inspect the actual database record returned from this authentication session
+      const currentRecord = authData.record || {};
+      const fieldsAreMissingInDb = !currentRecord.firstName || !currentRecord.lastName;
+
+      // 3. Auto-Heal / New Account Setup: Update if it's a new account OR if names are blank in DB
+      if (authData.meta?.isNew || fieldsAreMissingInDb) {
+        if (fName || lName) {
+          await pb.collection('users').update(currentRecord.id, {
+            firstName: fName,
+            lastName: lName,
+          });
+        }
+      }
+
       navigate('/');
     } catch (err) {
       console.error("Google Auth Failed", err);
+      alert("Er is iets fout gegaan tijdens het inloggen met Google: " + err.message);
     }
   };
 
