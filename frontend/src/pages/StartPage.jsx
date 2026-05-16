@@ -56,6 +56,7 @@ export default function StartPage() {
 
         // 1. Fetch Leaderboard
         const topUsers = await pb.collection('users').getList(1, 5, {
+          filter: 'paid = true',
           sort: '-total_points',
           batch: 5,
           requestKey: null

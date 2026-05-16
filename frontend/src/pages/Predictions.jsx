@@ -14,6 +14,7 @@ const PredictionsPage = () => {
     const stageOrder = ['Groepsfase', 'Zestiende Finale', 'Achtste Finale', 'Kwartfinale', 'Halve Finale', 'Troostfinale', 'Finale'];
     const [activeStages, setActiveStages] = useState(stageOrder);
     const [stageStatus, setStageStatus] = useState(null);
+    const saveTrackerRef = React.useRef({});
 
     useEffect(() => { loadData(); }, []);
 
@@ -213,36 +214,72 @@ const PredictionsPage = () => {
         const userId = pb.authStore.model?.id;
         if (!userId) return;
 
+        // Initialize tracking for this specific match row if it doesn't exist yet
+        if (!saveTrackerRef.current[matchId]) {
+            saveTrackerRef.current[matchId] = { isSaving: false, latestData: null, dbId: null };
+        }
+
+        // Always cache the latest values the user typed on screen
+        saveTrackerRef.current[matchId].latestData = updatedData;
+
+        // If an API request is already running for this match, exit!
+        // The active loop below will automatically process the new data when it finishes.
+        if (saveTrackerRef.current[matchId].isSaving) return;
+
+        saveTrackerRef.current[matchId].isSaving = true;
         setIsSyncing(true);
+
         try {
-            const data = {
-                user: userId,
-                match: matchId,
-                pred_home_ht: Number(updatedData.home_ht) || 0,
-                pred_away_ht: Number(updatedData.away_ht) || 0,
-                pred_home_ft: Number(updatedData.home_ft) || 0,
-                pred_away_ft: Number(updatedData.away_ft) || 0,
-                pred_toto: String(updatedData.toto || '3')
-            };
+            // Keep running as long as there is new data to sync
+            while (saveTrackerRef.current[matchId].latestData) {
+                const currentChunk = saveTrackerRef.current[matchId].latestData;
+                saveTrackerRef.current[matchId].latestData = null; // consume it
 
-            if (updatedData.id) {
-                await pb.collection('predictions').update(updatedData.id, data);
-            } else {
-                const record = await pb.collection('predictions').create(data);
-                setUserPredictions(prev => ({
-                    ...prev,
-                    [matchId]: { ...updatedData, id: record.id }
-                }));
+                const data = {
+                    user: userId,
+                    match: matchId,
+                    pred_home_ht: Number(currentChunk.home_ht) || 0,
+                    pred_away_ht: Number(currentChunk.away_ht) || 0,
+                    pred_home_ft: Number(currentChunk.home_ft) || 0,
+                    pred_away_ft: Number(currentChunk.away_ft) || 0,
+                    pred_toto: String(currentChunk.toto || '3')
+                };
+
+                // Identify whether we have a database ID cached locally or inside the ref
+                const recordId = saveTrackerRef.current[matchId].dbId || currentChunk.id;
+
+                if (recordId) {
+                    // Pass requestKey: matchId so PocketBase isolates cancellations per row
+                    await pb.collection('predictions').update(recordId, data, { requestKey: matchId });
+                } else {
+                    // Pass a unique requestKey per matchId so PocketBase doesn't cancel requests across different matches
+                    const record = await pb.collection('predictions').create(data, { requestKey: matchId });
+
+                    // Secure the newborn database ID in our ref instantly
+                    saveTrackerRef.current[matchId].dbId = record.id;
+
+                    // PASS THE ID BACK SAFELY WITHOUT OVERWRITING USER TYPING
+                    setUserPredictions(prev => {
+                        if (!prev[matchId]) return prev;
+                        return {
+                            ...prev,
+                            [matchId]: {
+                                ...prev[matchId], // Keep whatever numbers are currently on the screen right now
+                                id: record.id     // Only graft on the new database ID
+                            }
+                        };
+                    });
+                }
             }
-
-            const match = matches.find(m => m.id === matchId);
-            const check = is00LimitReached(matchId, match.stage, updatedData.home_ht, updatedData.away_ht);
 
             setLastSaved(`${new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}`);
             setSyncError(null);
         } catch (err) {
+            if (err.isAbort) return; // Ignore benign PocketBase auto-cancel signals
+            console.error("Save error:", err);
             setSyncError("Fout bij opslaan.");
         } finally {
+            saveTrackerRef.current[matchId].isSaving = false;
             setTimeout(() => setIsSyncing(false), 500);
         }
     };
