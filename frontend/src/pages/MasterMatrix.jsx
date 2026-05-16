@@ -9,7 +9,7 @@ import '../Features.css';
 const SIMULATED_STAGE = null;
 
 export default function MasterMatrix() {
-    const [data, setData] = useState({ matches: [], users: [], predictions: [] });
+    const [data, setData] = useState({ matches: [], users: [], predictions: [], topFour: [] });
     const [searchTerm, setSearchTerm] = useState('');
     const [hideCompleted, setHideCompleted] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -21,15 +21,17 @@ export default function MasterMatrix() {
         const fetchMatrixData = async () => {
             try {
                 setLoading(true);
-                const [allMatches, allUsers, allPreds] = await Promise.all([
+                const [allMatches, allUsers, allPreds, allTopFour] = await Promise.all([
                     pb.collection('matches').getFullList({
                         sort: 'match_date',
                         expand: 'home_team,away_team',
                     }),
                     pb.collection('users').getFullList({ sort: 'order' }),
-                    pb.collection('predictions').getFullList({ requestKey: null })
+                    pb.collection('predictions').getFullList({ requestKey: null }),
+                    // Safely fetch the top four predictions collection
+                    pb.collection('top_four_predictions').getFullList({ requestKey: null }).catch(() => [])
                 ]);
-                setData({ matches: allMatches, users: allUsers, predictions: allPreds });
+                setData({ matches: allMatches, users: allUsers, predictions: allPreds, topFour: allTopFour });
             } catch (err) {
                 console.error("Matrix fetch error", err);
             } finally {
@@ -40,7 +42,6 @@ export default function MasterMatrix() {
     }, []);
 
     const isStageOpen = (stageName, allMatches) => {
-        // If we are simulating a specific stage, any stage before it in the list is "Closed"
         if (SIMULATED_STAGE) {
             const simIndex = stageOrder.indexOf(SIMULATED_STAGE);
             const stageIndex = stageOrder.indexOf(stageName);
@@ -58,12 +59,12 @@ export default function MasterMatrix() {
         return [...data.users].sort((a, b) => (a.order || 0) - (b.order || 0) || (a.lastName || "").localeCompare(b.lastName || ""));
     }, [data.users]);
 
-    // This determines which stage the nudge pills are counting
     const activeNudgeStage = useMemo(() => {
         if (SIMULATED_STAGE) return SIMULATED_STAGE;
         return stageOrder.find(s => isStageOpen(s, data.matches)) || "Toernooi";
     }, [data.matches]);
 
+    // Track standard match predictions progress
     const userStats = useMemo(() => {
         const stats = {};
         const targetMatches = data.matches.filter(m => m.stage === activeNudgeStage);
@@ -78,12 +79,39 @@ export default function MasterMatrix() {
         return stats;
     }, [data.predictions, data.matches, sortedUsers, activeNudgeStage]);
 
+    // Track Top 4 predictions progress dynamically per phase
+    const topFourStats = useMemo(() => {
+        const stats = {};
+        // Match phase criteria: 'pre_tournament' during group stage, 'post_group_stage' during knockouts
+        const expectedPhase = activeNudgeStage === 'Groepsfase' ? 'pre_tournament' : 'post_group_stage';
+
+        sortedUsers.forEach(user => {
+            const userRecords = data.topFour.filter(p => p.user === user.id);
+            // Look for a record matching the active phase, or fall back to any available record
+            const userPred = userRecords.find(p => p.phase === expectedPhase) || userRecords[0];
+
+            let completed = 0;
+            if (userPred) {
+                if (userPred.rank_1) completed++;
+                if (userPred.rank_2) completed++;
+                if (userPred.rank_3) completed++;
+                if (userPred.rank_4) completed++;
+            }
+
+            stats[user.id] = {
+                completed,
+                total: 4,
+                isFinished: completed === 4
+            };
+        });
+        return stats;
+    }, [data.topFour, sortedUsers, activeNudgeStage]);
+
     const filteredUsers = useMemo(() => {
         if (!hideCompleted) return sortedUsers;
         return sortedUsers.filter(user => !userStats[user.id]?.isFinished);
     }, [sortedUsers, hideCompleted, userStats]);
 
-    // Matches to show in the table (those that are NOT open)
     const visibleMatches = useMemo(() => data.matches.filter(m => !isStageOpen(m.stage, data.matches)), [data.matches]);
 
     const handleOrderChange = async (userId, newOrder) => {
@@ -159,10 +187,10 @@ export default function MasterMatrix() {
                             ))}
                         </tr>
 
-                        {/* ROW 2: CURRENT STAGE PROGRESS (The Nudge Row) */}
+                        {/* ROW 2: CURRENT STAGE PROGRESS (The Match Nudge Row) */}
                         <tr className="nudge-row-header">
                             <th className="sticky-col matrix-header-cell stage-label-cell">
-                                {activeNudgeStage}
+                                Wedstrijden ({activeNudgeStage})
                             </th>
                             {filteredUsers.map((user) => (
                                 <th key={`nudge-${user.id}`} className="nudge-cell">
@@ -171,6 +199,23 @@ export default function MasterMatrix() {
                                     </div>
                                 </th>
                             ))}
+                        </tr>
+
+                        {/* ROW 3: TOP 4 SELECTION PROGRESS (The New Nudge Row) */}
+                        <tr className="nudge-row-header top-four-nudge-row">
+                            <th className="sticky-col matrix-header-cell stage-label-cell">
+                                Top 4 Keuze
+                            </th>
+                            {filteredUsers.map((user) => {
+                                const stats = topFourStats[user.id] || { completed: 0, total: 4, isFinished: false };
+                                return (
+                                    <th key={`top4-${user.id}`} className="nudge-cell">
+                                        <div className={`nudge-pill ${stats.isFinished ? 'complete' : 'incomplete'}`}>
+                                            {stats.completed} / {stats.total}
+                                        </div>
+                                    </th>
+                                );
+                            })}
                         </tr>
                     </thead>
                     <tbody>
