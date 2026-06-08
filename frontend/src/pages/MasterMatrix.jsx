@@ -410,7 +410,7 @@ export default function MasterMatrix() {
                                         </th>
                                     ))}
                                 </tr>
-                                {['1', '2', '3', '4'].map((rank) => (
+                                {tournamentStarted && ['1', '2', '3', '4'].map((rank) => (
                                     <tr key={`top4-rank-${rank}`} className="print-top4-row">
                                         <td className="print-match-header print-top4-label">{rank}.</td>
                                         {userChunk.map((user) => {
