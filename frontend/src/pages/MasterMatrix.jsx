@@ -28,6 +28,17 @@ export default function MasterMatrix() {
 
     const stageOrder = ['Groepsfase', 'Zestiende Finale', 'Achtste Finale', 'Kwartfinale', 'Halve Finale', 'Troostfinale', 'Finale'];
 
+    // Get current user ID early for use in effects
+    const currentUserId = pb.authStore.model?.id;
+
+    const scrollToUser = (userId) => {
+        if (!userId || !scrollContainerRef.current) return;
+        const headerCell = userRefs.current.get(userId);
+        if (headerCell) {
+            headerCell.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
+    };
+
     useEffect(() => {
         const fetchMatrixData = async () => {
             try {
@@ -51,6 +62,17 @@ export default function MasterMatrix() {
         };
         fetchMatrixData();
     }, []);
+
+    // Auto-scroll to logged-in user when data loads
+    useEffect(() => {
+        if (loading || !pb.authStore.model?.id) return;
+        setTimeout(() => {
+            const userCell = userRefs.current.get(pb.authStore.model.id);
+            if (userCell) {
+                userCell.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }
+        }, 100);
+    }, [loading]);
 
     const isStageOpen = (stageName, allMatches) => {
         if (SIMULATED_STAGE) {
@@ -130,7 +152,12 @@ export default function MasterMatrix() {
     useEffect(() => {
         if (!scrollContainerRef.current) return;
         if (!debouncedSearch) {
-            scrollContainerRef.current.scrollTo({ left: 0, top: 0, behavior: 'smooth' });
+            // When search is cleared, scroll to logged-in user
+            if (currentUserId) {
+                scrollToUser(currentUserId);
+            } else {
+                scrollContainerRef.current.scrollTo({ left: 0, top: 0, behavior: 'smooth' });
+            }
             return;
         }
 
@@ -144,7 +171,7 @@ export default function MasterMatrix() {
         if (headerCell) {
             headerCell.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
         }
-    }, [debouncedSearch, filteredUsers]);
+    }, [debouncedSearch, filteredUsers, currentUserId]);
 
     const earliestMatchDate = useMemo(() => {
         if (!data.matches.length) return null;
