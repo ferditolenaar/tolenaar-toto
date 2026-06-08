@@ -119,3 +119,107 @@
         justify-content: center;
     }
 }
+
+@media print {
+    html, body {
+        background: #fff !important;
+        color: #000 !important;
+        overflow: visible !important;
+    }
+
+    .container-centered,
+    .page-container,
+    .predictions-body,
+    .stage-group,
+    .matches-table-wrapper {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .filter-container,
+    .toast-stack-container,
+    .floating-sync-bar,
+    .status-toast,
+    .stepper-btn,
+    .toto-group,
+    .filter-block,
+    .score-dash {
+        display: none !important;
+    }
+
+    .desktop-only {
+        display: block !important;
+    }
+
+    .mobile-only {
+        display: none !important;
+    }
+
+    .match-row-wide {
+        display: block !important;
+        border: 1px solid #000 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        page-break-inside: avoid;
+        break-inside: avoid;
+        margin-bottom: 10px !important;
+    }
+
+    .match-row-wide > div,
+    .cell-time,
+    .cell-city,
+    .cell-team,
+    .cell-inputs,
+    .input-group-container,
+    .score-input-wrapper {
+        display: block !important;
+        width: 100% !important;
+    }
+
+    .cell-team {
+        display: inline-block !important;
+        width: 48% !important;
+        vertical-align: top;
+        font-weight: 700;
+    }
+
+    .cell-team + .cell-team {
+        margin-left: 4% !important;
+    }
+
+    .cell-inputs {
+        margin-top: 8px !important;
+    }
+
+    .in-ht,
+    .in-ft {
+        width: 3rem !important;
+        height: 2.6rem !important;
+        border: 1px solid #000 !important;
+        background: #fff !important;
+        color: #000 !important;
+        font-size: 1rem !important;
+    }
+
+    .toto-cube,
+    .toto-label {
+        display: none !important;
+    }
+
+    .stage-header-title {
+        font-size: 1rem !important;
+        margin-top: 16px !important;
+        margin-bottom: 8px !important;
+    }
+
+    .row-disabled {
+        opacity: 1 !important;
+    }
+
+    @page {
+        size: A4 portrait;
+        margin: 10mm;
+    }
+}

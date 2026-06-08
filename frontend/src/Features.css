@@ -121,6 +121,69 @@
     height: 25px;
 }
 
+@media print {
+    html, body {
+        background: #fff !important;
+        color: #000 !important;
+        overflow: visible !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .app-container,
+    .nav-inner,
+    .container-centered,
+    .page-container {
+        width: auto !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .navbar,
+    .nav-links,
+    .mobile-toggle,
+    .profile-container,
+    .action-center,
+    .filter-container,
+    .page-header.scrolled {
+        display: none !important;
+    }
+
+    .page-header,
+    .section-spacing,
+    .section-spacing-compact {
+        position: static !important;
+        top: auto !important;
+    }
+
+    a,
+    a:link,
+    a:visited {
+        color: #000 !important;
+        text-decoration: none !important;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+        display: none !important;
+    }
+
+    .no-print,
+    .non-print,
+    .profile-dropdown,
+    .logout-item {
+        display: none !important;
+    }
+
+    @page {
+        size: A4 portrait;
+        margin: 10mm;
+    }
+}
+
 /* --- Progress Bar --- */
 .progress-container {
     width: 100%;

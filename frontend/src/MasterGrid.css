@@ -12,14 +12,27 @@ body {
     height: calc(100vh - 70px);
     width: 100%;
     background: #f8f9fa;
+    overflow: hidden;
 }
 
 /* --- 2. Compact Header & Search --- */
-.matrix-header-compact {
+.screen-only {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.matrix-header-compact,
+.page-header.matrix-header-compact {
+    position: relative !important;
+    top: auto !important;
+    z-index: 1 !important;
     padding: 10px 0 0 0 !important;
-    flex-shrink: 0;
     background: #f8f9fa;
+    background-clip: padding-box;
     text-align: center;
+    border-bottom: 1px solid #ddd;
 }
 
 .matrix-header-compact h1 {
@@ -58,13 +71,18 @@ body {
 
 /* --- 3. Scroll Container & Rainbow Bar --- */
 .matrix-scroll-container {
-    flex-grow: 1;
-    overflow: auto;
+    flex: 1 1 0;
+    min-height: 0;
+    max-height: calc(100vh - 70px - 150px);
+    overflow-y: auto;
+    overflow-x: auto;
     background: white;
     position: relative;
+    z-index: 1;
     padding: 0 !important;
     margin: 0 !important;
     border: 1px solid #eee;
+    width: 100%;
 }
 
 /* The Rainbow Line stays at the absolute top of the scroll area */
@@ -76,7 +94,7 @@ body {
     width: 100%;
     height: 6px;
     background: linear-gradient(90deg, #007bff, #dc3545, #ffc107, #c6f6d5);
-    z-index: 2100;
+    z-index: 2600;
     display: block;
 }
 
@@ -95,11 +113,11 @@ body {
 .user-header, 
 .matrix-header-cell.corner-label {
     position: sticky;
-    top: 6px; /* Below 6px rainbow line */
+    top: 6px; /* Below the rainbow line */
     height: 80px; 
     background: #2c3e50 !important;
     color: #00d4ff;
-    z-index: 1000;
+    z-index: 2200;
     width: 100px;
     min-width: 100px;
     font-size: 0.75rem;
@@ -113,9 +131,9 @@ body {
 .nudge-cell,
 .stage-label-cell {
     position: sticky;
-    top: 86px; /* Rainbow (6) + Row 1 (80) */
+    top: 86px; /* Rainbow (6) + header row (80) */
     height: 45px;
-    z-index: 900;
+    z-index: 2100;
     background: #f1f3f5 !important;
     border-bottom: 3px solid #2c3e50; /* Thick line to separate from data */
     border-right: 1px solid #dee2e6;
@@ -128,13 +146,15 @@ body {
 .sticky-col {
     position: sticky;
     left: 0;
-    z-index: 500;
+    z-index: 2100;
+    background: #f8f9fa;
+    background-clip: padding-box;
 }
 
 /* Corner Priority: Top row left cell */
 .matrix-header-cell.corner-label {
     left: 0;
-    z-index: 2000 !important;
+    z-index: 2400 !important;
     background: #f1f3f5 !important;
     color: #2c3e50;
 }
@@ -142,7 +162,7 @@ body {
 /* Corner Priority: Second row left cell */
 .stage-label-cell {
     left: 0;
-    z-index: 1900 !important;
+    z-index: 2450 !important;
     font-size: 0.7rem;
     font-weight: 900;
     text-transform: uppercase;
@@ -152,6 +172,7 @@ body {
 /* Body Sticky Column: Match info */
 .sticky-col.match-cell {
     background: #f8f9fa !important;
+    z-index: 2150;
     width: 130px;
     padding: 10px;
     border-right: 2px solid #dee2e6;
@@ -180,6 +201,16 @@ body {
     gap: 4px;
     justify-content: center; /* This keeps them close and centered */
     margin-bottom: 4px;
+}
+
+.top4-compare-lines {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+    white-space: nowrap;
+    line-height: 1.1;
+    text-align: center;
 }
 
 .nudge-pill {
@@ -258,8 +289,226 @@ body {
     appearance: textfield; 
 }
 
-.admin-toggle-bar {
-    margin-top: 5px;
+.screen-only {
+    display: block !important;
+}
+
+.print-only {
+    display: none !important;
+}
+
+@media print {
+    .screen-only {
+        display: none !important;
+    }
+
+    .print-only {
+        display: block !important;
+    }
+
+    html, body {
+        overflow: visible !important;
+        background: #fff !important;
+        color: #000 !important;
+    }
+
+    .matrix-main-layout {
+        height: auto !important;
+        padding: 0 !important;
+    }
+
+    .matrix-header-compact,
+    .matrix-controls-centered,
+    .search-wrapper-centered,
+    .matrix-search-input,
+    .admin-toggle-bar,
+    .admin-row,
+    .admin-order-input,
+    input[type="checkbox"] {
+        display: none !important;
+    }
+
+    .matrix-scroll-container {
+        overflow: visible !important;
+        border: none !important;
+        background: transparent !important;
+    }
+
+    .master-matrix {
+        width: 100% !important;
+        table-layout: auto !important;
+        border-collapse: collapse !important;
+    }
+
+    .master-matrix th,
+    .master-matrix td {
+        position: static !important;
+        top: auto !important;
+        left: auto !important;
+        z-index: auto !important;
+        border: 1px solid #000 !important;
+        padding: 0.35rem 0.45rem !important;
+        background: transparent !important;
+        color: #000 !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    .user-header,
+    .matrix-header-cell.corner-label,
+    .nudge-cell,
+    .stage-label-cell,
+    .sticky-col {
+        position: static !important;
+    }
+
+    .matrix-header-cell.corner-label,
+    .stage-label-cell {
+        background: #f0f0f0 !important;
+        color: #000 !important;
+    }
+
+    .pred-cell-matrix {
+        width: auto !important;
+    }
+
+    .matrix-match-info {
+        font-size: 0.85rem !important;
+    }
+
+    .nudge-pill {
+        display: inline-block !important;
+        padding: 0.25rem 0.5rem !important;
+        font-size: 0.75rem !important;
+    }
+
+    .print-matrix-page {
+        margin-bottom: 1rem;
+        page-break-after: always !important;
+    }
+
+    .print-matrix-page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        font-size: 8pt;
+        font-weight: 700;
+    }
+
+    .print-matrix-table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        font-size: 5pt;
+        line-height: 0.98;
+        table-layout: fixed;
+    }
+
+    /* Remove most borders and shrink padding for maximum density */
+    .print-matrix-table th,
+    .print-matrix-table td {
+        border: none !important;
+        padding: 0.4px 1px !important;
+        vertical-align: middle !important;
+        text-align: center !important;
+        word-break: break-word !important;
+    }
+
+    /* Keep a clear header divider */
+    .print-matrix-table thead th {
+        border-bottom: 1px solid #000 !important;
+    }
+
+    /* Add a horizontal rule every 10 rows to aid scanning */
+    .print-matrix-table tbody tr:nth-child(10n) td {
+        border-bottom: 1px solid #000 !important;
+        padding-bottom: 2px !important;
+    }
+
+    /* Optional subtle separators for groups: thicker every 50 rows */
+    .print-matrix-table tbody tr:nth-child(50n) td {
+        border-bottom: 1.5px solid #000 !important;
+    }
+
+    .print-match-header {
+        width: 90px !important;
+        min-width: 70px !important;
+        font-size: 5pt !important;
+        padding: 0.4px 2px !important;
+    }
+
+    .print-user-header {
+        width: calc((100% - 90px) / 18) !important;
+        min-width: 30px !important;
+        font-size: 4.2pt !important;
+        line-height: 0.96;
+        padding: 0.3px 1.5px !important;
+    }
+
+    .print-match-cell {
+        text-align: left !important;
+        font-size: 7pt !important;
+        padding: 2px 4px !important;
+    }
+
+    .print-top4-label {
+        text-align: left !important;
+        font-size: 5pt !important;
+        padding-left: 2px !important;
+        font-weight: 700 !important;
+    }
+
+    .print-top4-value {
+        text-align: center !important;
+        font-size: 5pt !important;
+        padding: 0.4px 1px !important;
+    }
+
+    .print-match-code {
+        font-weight: 400 !important;
+        text-transform: lowercase !important;
+        letter-spacing: 0.2px !important;
+    }
+
+    /* Hide the stage line to save vertical space in the print matrix */
+    .print-match-stage {
+        display: none !important;
+    }
+
+    .print-pred-cell {
+        padding: 2px 4px !important;
+    }
+
+    /* Render score and small meta on a single line to conserve vertical space */
+    .print-pred-stack {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: baseline;
+        gap: 6px;
+    }
+
+    .print-pred-score {
+        font-size: 5pt !important;
+        font-weight: 700;
+        line-height: 0.98 !important;
+    }
+
+    .print-pred-toto {
+        font-size: 4pt !important;
+        color: #333;
+        line-height: 0.98 !important;
+    }
+
+    .print-matrix-table thead th {
+        background: #f1f3f5 !important;
+        padding: 2px 4px !important;
+    }
+
+    @page {
+        size: A4 portrait;
+        margin: 6mm 6mm;
+    }
 }
 
 .admin-toggle-label {
