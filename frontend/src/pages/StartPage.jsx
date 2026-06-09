@@ -196,7 +196,7 @@ export default function StartPage() {
       <div className="feature-card tournament-card full-width announcement-panel">
         <div className="card-header">
           <h3>Belangrijke Mededeling</h3>
-          <p>Sluit je aan bij de WhatsApp-groep en bekijk de deelnemerslijst en regels voordat je gaat spelen.</p>
+          <p>Sluit je aan bij de WhatsApp-groep en bekijk de who's who!</p>
         </div>
         <div className="card-content announcement-links">
           <a href="https://chat.whatsapp.com/EceGRuBnPxsIIANQWEYs2R" className="whatsapp-link" target="_blank" rel="noopener noreferrer">
