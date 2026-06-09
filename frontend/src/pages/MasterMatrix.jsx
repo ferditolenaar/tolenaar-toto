@@ -133,8 +133,14 @@ export default function MasterMatrix() {
     }, [data.topFour, sortedUsers]);
 
     const filteredUsers = useMemo(() => {
-        return !hideCompleted ? sortedUsers : sortedUsers.filter(user => !userStats[user.id]?.isFinished);
-    }, [sortedUsers, hideCompleted, userStats]);
+        if (!hideCompleted) return sortedUsers;
+        return sortedUsers.filter(user => {
+            const matchFinished = !!userStats[user.id]?.isFinished;
+            const top4Finished = !!topFourStats[user.id]?.isFinished;
+            // Hide only when both match predictions and top-4 are finished
+            return !(matchFinished && top4Finished);
+        });
+    }, [sortedUsers, hideCompleted, userStats, topFourStats]);
 
     const predictionsByMatchUser = useMemo(() => {
         const map = {};
