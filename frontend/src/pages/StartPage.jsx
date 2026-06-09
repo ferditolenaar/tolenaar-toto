@@ -192,6 +192,28 @@ export default function StartPage() {
         <p>Voorspel de uitslagen van het grootste sportevenement ter wereld en win!</p>
       </header>
 
+      {/* Announcement panel - placed directly under the header and above the status/action center */}
+      <div className="feature-card tournament-card full-width announcement-panel">
+        <div className="card-header">
+          <h3>Belangrijke Mededeling</h3>
+          <p>Sluit je aan bij de WhatsApp-groep en bekijk de deelnemerslijst en regels voordat je gaat spelen.</p>
+        </div>
+        <div className="card-content announcement-links">
+          <a href="https://chat.whatsapp.com/EceGRuBnPxsIIANQWEYs2R" className="whatsapp-link" target="_blank" rel="noopener noreferrer">
+            <svg className="link-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M20.52 3.48A11.94 11.94 0 0012.02.03C6.03.03 1.02 5.03 1.02 11.02c0 1.94.5 3.84 1.45 5.52L.01 23l6.7-1.74A11.9 11.9 0 0012.02 23c5.99 0 10.99-4.99 10.99-10.99 0-3-1.17-5.77-3.49-7.53zM12.02 20.1c-1.45 0-2.87-.39-4.11-1.12l-.3-.18-3.97 1.03 1.06-3.81-.19-.31A8.06 8.06 0 013.96 11.02c0-4.48 3.64-8.12 8.12-8.12 4.48 0 8.12 3.64 8.12 8.12 0 4.48-3.64 8.12-8.12 8.12z"/></svg>
+            WhatsApp groep
+          </a>
+          <a href="https://drive.google.com/file/d/1zURlCkJjY_H5ywG_4q4rL9FOqznvjf3W/view?usp=drive_link" className="whoswho-link" target="_blank" rel="noopener noreferrer">
+            <svg className="link-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M12 12a5 5 0 100-10 5 5 0 000 10zm0 2c-4.42 0-8 1.79-8 4v2h16v-2c0-2.21-3.58-4-8-4z"/></svg>
+            Who's Who
+          </a>
+          <a href="https://docs.google.com/document/d/1uRLJMidO9vLGW6nSTeGaCJuV461MPGfqpk3Clzj3p40/edit?usp=drive_link" className="rules-link" target="_blank" rel="noopener noreferrer">
+            <svg className="link-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M19 3H5a2 2 0 00-2 2v14l4-2 4 2 4-2 4 2V5a2 2 0 00-2-2z"/></svg>
+            Regels
+          </a>
+        </div>
+      </div>
+
       {/* --- ACTION CENTER --- */}
       <div className="section-spacing-compact">
         <div className="feature-card tournament-card action-center">
@@ -222,7 +244,7 @@ export default function StartPage() {
                     ></div>
                   </div>
 
-                  <Link to="/top4" className="card-action-btn-sm gold-btn">
+                  <Link to="/top4" className={`card-action-btn-sm ${top4Stats.isFinished ? 'green-btn' : 'gold-btn'}`}>
                     {isPreTournamentLocked && !isPostGroupActive
                       ? "Bekijk"
                       : (top4Stats.isFinished ? "Aanpassen" : "Voorspel Top 4")}
