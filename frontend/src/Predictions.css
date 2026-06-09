@@ -120,11 +120,29 @@
     }
 }
 
+.print-only {
+    display: none !important;
+}
+
 @media print {
     html, body {
         background: #fff !important;
         color: #000 !important;
         overflow: visible !important;
+    }
+    .print-only {
+        display: block !important;
+    }
+    .container-centered,
+    .page-container,
+    .predictions-body,
+    .stage-group,
+    .matches-table-wrapper {
+        display: none !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
 
     .container-centered,
@@ -217,7 +235,70 @@
     .row-disabled {
         opacity: 1 !important;
     }
+    .print-predictions-page {
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        font-size: 6pt !important;
+        color: #000 !important;
+    }
 
+    .print-predictions-page-header {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: flex-end !important;
+        margin-bottom: 8px !important;
+        gap: 12px !important;
+    }
+
+    .print-app-title {
+        font-size: 10pt !important;
+        font-weight: 700 !important;
+        margin-bottom: 2px !important;
+    }
+
+    .print-user-name,
+    .print-date {
+        font-size: 7pt !important;
+    }
+
+    .print-stage-block {
+        margin-bottom: 10px !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    .print-stage-title {
+        font-size: 7.5pt !important;
+        font-weight: 700 !important;
+        margin: 6px 0 4px !important;
+    }
+
+    .print-predictions-table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        font-size: 6pt !important;
+        line-height: 1 !important;
+    }
+
+    .print-predictions-table th,
+    .print-predictions-table td {
+        border: 1px solid #000 !important;
+        padding: 2px 4px !important;
+        text-align: left !important;
+        vertical-align: middle !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    .print-predictions-table th {
+        background: #f1f3f5 !important;
+        font-weight: 700 !important;
+    }
+
+    .print-predictions-table tbody tr:nth-child(10n) td {
+        border-bottom: 1px solid #000 !important;
+    }
     @page {
         size: A4 portrait;
         margin: 10mm;

@@ -324,6 +324,10 @@ const PredictionsPage = () => {
         'Halve Finale' // This will now be the last link
     ];
 
+    const currentUserName = pb.authStore.model
+        ? `${pb.authStore.model.firstName || ''} ${pb.authStore.model.lastName || ''}`.trim() || pb.authStore.model.email || 'Gebruiker'
+        : 'Gebruiker';
+
     const getShortStageName = (name) => {
         const names = {
             'Groepsfase': 'Groep',
@@ -336,7 +340,56 @@ const PredictionsPage = () => {
     };
 
     return (
-        <div className="container-centered page-container">
+        <>
+            <div className="print-only">
+                <div className="print-predictions-page">
+                    <div className="print-predictions-page-header">
+                        <div>
+                            <div className="print-app-title">Voorspellingen</div>
+                            <div className="print-user-name">{currentUserName}</div>
+                        </div>
+                        <div className="print-date">{new Date().toLocaleDateString('nl-NL')}</div>
+                    </div>
+                    {stageOrder.map(stageName => {
+                        const stageMatches = groupedMatches[stageName];
+                        if (!stageMatches || stageMatches.length === 0) return null;
+
+                        return (
+                            <div key={`print-stage-${stageName}`} className="print-stage-block">
+                                <div className="print-stage-title">{stageName}</div>
+                                <table className="print-predictions-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Wedstrijd</th>
+                                            <th>Datum</th>
+                                            <th>Plaats</th>
+                                            <th>HT</th>
+                                            <th>FT</th>
+                                            <th>TOTO</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {stageMatches.map(m => {
+                                            const pred = userPredictions[m.id] || {};
+                                            return (
+                                                <tr key={`print-match-${m.id}`}>
+                                                    <td>{`${m.expand?.home_team?.code?.toLowerCase() || '...'} - ${m.expand?.away_team?.code?.toLowerCase() || '...'}`}</td>
+                                                    <td>{formatDateTime(m.match_date, true)}</td>
+                                                    <td>{m.match_city || '-'}</td>
+                                                    <td>{pred.home_ht !== undefined && pred.home_ht !== '' ? pred.home_ht : '-'}</td>
+                                                    <td>{pred.home_ft !== undefined && pred.home_ft !== '' ? pred.home_ft : '-'}</td>
+                                                    <td>{pred.toto ? (pred.toto === '3' ? 'X' : pred.toto) : '-'}</td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+            <div className="container-centered page-container">
             <header className="page-header tournament-theme">
                 <h1 className="tournament-title">Voorspellen Wedstrijden</h1>
                 <div className="filter-container">
@@ -513,6 +566,7 @@ const PredictionsPage = () => {
                 </div>
             </div>
         </div>
+        </>
     );
 };
 
