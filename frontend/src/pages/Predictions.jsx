@@ -371,13 +371,15 @@ const PredictionsPage = () => {
                                     <tbody>
                                         {stageMatches.map(m => {
                                             const pred = userPredictions[m.id] || {};
+                                            const htValue = `${pred.home_ht !== undefined && pred.home_ht !== '' ? pred.home_ht : '-'} - ${pred.away_ht !== undefined && pred.away_ht !== '' ? pred.away_ht : '-'}`;
+                                            const ftValue = `${pred.home_ft !== undefined && pred.home_ft !== '' ? pred.home_ft : '-'} - ${pred.away_ft !== undefined && pred.away_ft !== '' ? pred.away_ft : '-'}`;
                                             return (
                                                 <tr key={`print-match-${m.id}`}>
                                                     <td>{`${m.expand?.home_team?.code?.toLowerCase() || '...'} - ${m.expand?.away_team?.code?.toLowerCase() || '...'}`}</td>
                                                     <td>{formatDateTime(m.match_date, true)}</td>
                                                     <td>{m.match_city || '-'}</td>
-                                                    <td>{pred.home_ht !== undefined && pred.home_ht !== '' ? pred.home_ht : '-'}</td>
-                                                    <td>{pred.home_ft !== undefined && pred.home_ft !== '' ? pred.home_ft : '-'}</td>
+                                                    <td>{htValue}</td>
+                                                    <td>{ftValue}</td>
                                                     <td>{pred.toto ? (pred.toto === '3' ? 'X' : pred.toto) : '-'}</td>
                                                 </tr>
                                             );

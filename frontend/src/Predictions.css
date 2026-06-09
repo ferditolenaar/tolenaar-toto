@@ -163,7 +163,14 @@
     .stepper-btn,
     .toto-group,
     .filter-block,
-    .score-dash {
+    .score-dash,
+    .container-centered,
+    .page-container,
+    .predictions-body,
+    .stage-group,
+    .matches-table-wrapper,
+    .match-row-wide,
+    .page-header {
         display: none !important;
     }
 
