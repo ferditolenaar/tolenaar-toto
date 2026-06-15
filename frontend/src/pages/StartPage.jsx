@@ -336,16 +336,29 @@ export default function StartPage() {
           </div>
           <div className="card-content">
             <div className="matches-mini">
-              {matches.length > 0 ? matches.map((match) => (
-                <div key={match.id} className="mini-match-row">
-                  <span className="mini-teams">
-                    {match.expand?.home_team?.name} <span className="vs">vs</span> {match.expand?.away_team?.name}
-                  </span>
-                  <span className="mini-time">
-                    {new Date(match.match_date).toLocaleTimeString('nl-NL', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                </div>
-              )) : <p className="empty-txt">Geen wedstrijden op de planning.</p>}
+              {matches.length > 0 ? matches.map((match) => {
+                const matchTime = new Date(match.match_date).getTime();
+                const now = new Date().getTime();
+                const isFinished = now > (matchTime + 2 * 60 * 60 * 1000);
+                const hasResult = match.home_ft !== undefined && match.home_ft !== null && match.home_ft !== '';
+
+                return (
+                  <div key={match.id} className="mini-match-row">
+                    <span className="mini-teams">
+                      {match.expand?.home_team?.name} <span className="vs">vs</span> {match.expand?.away_team?.name}
+                    </span>
+                    {isFinished && hasResult ? (
+                      <span className="mini-time" style={{ fontWeight: 'bold' }}>
+                        {match.home_ft} - {match.away_ft}
+                      </span>
+                    ) : (
+                      <span className="mini-time">
+                        {new Date(match.match_date).toLocaleTimeString('nl-NL', { timeZone: 'Europe/Amsterdam', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    )}
+                  </div>
+                );
+              }) : <p className="empty-txt">Geen wedstrijden op de planning.</p>}
             </div>
           </div>
           <Link to={isRoundActive ? "/uitslagen" : "/voorspellen"} className={`card-action-btn ${isRoundActive ? 'blue-btn' : 'green-btn'}`}>{isRoundActive ? "Bekijk Uitslagen" : "Direct Voorspellen"}</Link>
