@@ -299,7 +299,7 @@ const AdminMatchResults = () => {
                                             </div>
                                         </div>
 
-                                        <div className="cell-inputs">
+                                        <div className={`cell-inputs ${!isAdmin ? 'row-disabled' : ''}`}>
                                             {/* RUSTSTAND (HT) */}
                                             <div className="input-group-container">
                                                 <span className="mobile-only group-label">Ruststand</span>

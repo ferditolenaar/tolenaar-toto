@@ -388,22 +388,27 @@ export default function MasterMatrix() {
                         )}
                     </thead>
                     <tbody>
-                        {visibleMatches.map(match => (
-                            <tr key={match.id}>
-                                <td className="sticky-col match-cell">
-                                    <div className="matrix-match-info">
-                                        <span className="m-code">{match.expand?.home_team?.code} - {match.expand?.away_team?.code}</span>
-                                        {match.result && <span className="m-res">({match.result})</span>}
-                                    </div>
-                                </td>
-                                {filteredUsers.map((user) => {
-                                    const pred = predictionsByMatchUser[`${match.id}_${user.id}`];
-                                    const htCorrect = pred && pred.pred_home_ht === match.home_ht && pred.pred_away_ht === match.away_ht;
-                                    const ftCorrect = pred && pred.pred_home_ft === match.home_ft && pred.pred_away_ft === match.away_ft;
-                                    const totoCorrect = pred && pred.pred_toto === match.match_toto;
+                        {visibleMatches.map(match => {
+                            const matchStarted = isMatchStarted(match.match_date);
+                            
+                            return (
+                                <tr key={match.id}>
+                                    <td className="sticky-col match-cell">
+                                        <div className="matrix-match-info">
+                                            <span className="m-code">{match.expand?.home_team?.code} - {match.expand?.away_team?.code}</span>
+                                            {match.result && <span className="m-res">({match.result})</span>}
+                                        </div>
+                                    </td>
+                                    {filteredUsers.map((user) => {
+                                        const pred = predictionsByMatchUser[`${match.id}_${user.id}`];
+                                        
+                                        // Only highlight predictions if the match has actually started
+                                        const htCorrect = matchStarted && pred && pred.pred_home_ht === match.home_ht && pred.pred_away_ht === match.away_ht;
+                                        const ftCorrect = matchStarted && pred && pred.pred_home_ft === match.home_ft && pred.pred_away_ft === match.away_ft;
+                                        const totoCorrect = matchStarted && pred && pred.pred_toto === match.match_toto;
 
-                                    return (
-                                        <td key={`${match.id}-${user.id}`} className="pred-cell-matrix">
+                                        return (
+                                            <td key={`${match.id}-${user.id}`} className="pred-cell-matrix">
                                             <div className="matrix-score-grid">
                                                 <div className="score-row">
                                                     <span className={`s-mini ht ${htCorrect ? 'is-correct' : ''}`}>
@@ -421,7 +426,8 @@ export default function MasterMatrix() {
                                     );
                                 })}
                             </tr>
-                        ))}
+                        );
+                    })}
                     </tbody>
                 </table>
             </div>
