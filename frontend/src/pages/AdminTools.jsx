@@ -10,6 +10,9 @@ export default function AdminTools() {
     const [matchJsonInput, setMatchJsonInput] = useState('');
     const [teams, setTeams] = useState([]);
     const [officialResults, setOfficialResults] = useState({ rank_1: '', rank_2: '', rank_3: '', rank_4: '', id: null });
+    const [batchUserId, setBatchUserId] = useState('');
+    const [batchStatus, setBatchStatus] = useState('');
+    const [users, setUsers] = useState([]);
 
     // 1. Fetch teams to populate the admin dropdowns
     useEffect(() => {
@@ -29,7 +32,16 @@ export default function AdminTools() {
             setTeams(actualCountries);
 
         };
+        const loadUsers = async () => {
+            try {
+                const userList = await pb.collection('users').getFullList({ sort: 'firstName', requestKey: null });
+                setUsers(userList);
+            } catch (err) {
+                console.error("Failed to load users", err);
+            }
+        };
         loadTeams();
+        loadUsers();
     }, []);
 
     // 2. Fetch existing official results when tournament changes
@@ -187,6 +199,53 @@ export default function AdminTools() {
         }
     };
 
+    const handleBatchUpdateUserPredictions = async () => {
+        if (!batchUserId) {
+            setBatchStatus("Fout: Selecteer een deelnemer.");
+            return;
+        }
+        setBatchStatus("Bezig met updaten...");
+        
+        const user = users.find(u => u.id === batchUserId);
+        const userName = user ? `${user.firstName} ${user.lastName}`.trim() : "Onbekend";
+
+        try {
+            // 2. Fetch all prediction records belonging to this user
+            const records = await pb.collection('predictions').getFullList({
+                filter: `user = "${batchUserId}"`,
+                requestKey: null
+            });
+
+            console.log(`Found ${records.length} predictions for ${userName}. Processing updates...`);
+            let updatedCount = 0;
+
+            // 3. Loop through and update records where the logic applies
+            for (const record of records) {
+                let targetToto = '3'; // Default to Draw (equal)
+
+                if (record.pred_home_ft > record.pred_away_ft) {
+                    targetToto = '1'; // Home win
+                } else if (record.pred_home_ft < record.pred_away_ft) {
+                    targetToto = '2'; // Away win
+                }
+
+                // Only trigger the network request if the value needs to change
+                if (record.pred_toto !== targetToto) {
+                    await pb.collection('predictions').update(record.id, {
+                        pred_toto: targetToto
+                    }, { requestKey: null });
+                    updatedCount++;
+                }
+            }
+
+            setBatchStatus(`Succesvol ${updatedCount} van de ${records.length} voorspellingen geüpdatet voor ${userName}.`);
+            console.log('Batch update completed successfully.');
+        } catch (error) {
+            console.error('Error executing batch update:', error);
+            setBatchStatus(`Fout bij updaten van voorspellingen: ${error.message}`);
+        }
+    };
+
     return (
         <div className="container-centered page-container">
             <header className="page-header tournament-theme">
@@ -239,6 +298,38 @@ export default function AdminTools() {
                         Update Official Top 4
                     </button>
                 </div>
+                {/* Batch Update Predictions Card */}
+                <div className="feature-card full-width">
+                    <h3>🔄 Batch Update TOTO</h3>
+                    <p style={{ fontSize: "0.9rem", color: "#64748b", marginBottom: "1rem" }}>
+                        Deze tool controleert alle voorspellingen van een specifieke gebruiker. 
+                        Als de 1x2 TOTO selectie niet overeenkomt met de voorspelde uitslag, wordt dit automatisch gecorrigeerd.
+                    </p>
+                    <div style={{ display: "flex", gap: "10px", alignItems: "center", marginBottom: "10px" }}>
+                        <select
+                            className="admin-select"
+                            value={batchUserId}
+                            onChange={(e) => setBatchUserId(e.target.value)}
+                            style={{ flex: 1, padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1", backgroundColor: "white" }}
+                        >
+                            <option value="">-- Selecteer een deelnemer --</option>
+                            {users.map(u => (
+                                <option key={u.id} value={u.id}>
+                                    {u.firstName} {u.lastName} {u.email ? `(${u.email})` : ''}
+                                </option>
+                            ))}
+                        </select>
+                        <button onClick={handleBatchUpdateUserPredictions} className="submit-btn" style={{ background: "#3b82f6", margin: 0, width: "auto" }}>
+                            Update TOTO
+                        </button>
+                    </div>
+                    {batchStatus && (
+                        <p style={{ fontSize: "0.9rem", fontWeight: "bold", color: batchStatus.includes("Fout") ? "#dc3545" : "#10b981" }}>
+                            {batchStatus}
+                        </p>
+                    )}
+                </div>
+
                 {/* Team Management Card */}
                 <div className="feature-card">
                     <h3>Team Management</h3>
