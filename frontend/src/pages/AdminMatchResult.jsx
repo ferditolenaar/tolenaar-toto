@@ -280,7 +280,10 @@ const AdminMatchResults = () => {
                                 {stageName}
                             </h2>
                             <div className="matches-table-wrapper">
-                                {stageMatches.map(m => (
+                                {stageMatches.map(m => {
+                                    const showEmpty = !isAdmin && !isMatchStarted(m.match_date);
+                                    
+                                    return (
                                     <div key={m.id} id={`match-${m.id}`} className="match-row-wide">
                                         <div className="cell-time desktop-date desktop-only">
                                             {formatDateTime(m.match_date, false)}
@@ -306,13 +309,13 @@ const AdminMatchResults = () => {
                                                 <div className="score-input-wrapper">
                                                     <button className="stepper-btn minus mobile-only" onClick={() => handleStep(m.id, 'home_ht', -1)}>−</button>
                                                     <span className="label-tag desktop-only">HT</span>
-                                                    <input type="number" className="in-ht" value={m.home_ht ?? ''} onChange={(e) => processUpdate(m.id, 'home_ht', e.target.value)} disabled={!isAdmin} />
+                                                    <input type="number" className="in-ht" value={showEmpty ? '' : (m.home_ht ?? '')} onChange={(e) => processUpdate(m.id, 'home_ht', e.target.value)} disabled={!isAdmin} />
                                                     <button className="stepper-btn plus mobile-only" onClick={() => handleStep(m.id, 'home_ht', 1)}>+</button>
 
                                                     <span className="score-dash">-</span>
 
                                                     <button className="stepper-btn minus mobile-only" onClick={() => handleStep(m.id, 'away_ht', -1)}>−</button>
-                                                    <input type="number" className="in-ht" value={m.away_ht ?? ''} onChange={(e) => processUpdate(m.id, 'away_ht', e.target.value)} disabled={!isAdmin} />
+                                                    <input type="number" className="in-ht" value={showEmpty ? '' : (m.away_ht ?? '')} onChange={(e) => processUpdate(m.id, 'away_ht', e.target.value)} disabled={!isAdmin} />
                                                     <button className="stepper-btn plus mobile-only" onClick={() => handleStep(m.id, 'away_ht', 1)}>+</button>
                                                 </div>
                                             </div>
@@ -323,13 +326,13 @@ const AdminMatchResults = () => {
                                                 <div className="score-input-wrapper">
                                                     <button className="stepper-btn minus mobile-only" onClick={() => handleStep(m.id, 'home_ft', -1)}>−</button>
                                                     <span className="label-tag desktop-only">FT</span>
-                                                    <input type="number" className="in-ft" value={m.home_ft ?? ''} onChange={(e) => processUpdate(m.id, 'home_ft', e.target.value)} disabled={!isAdmin} />
+                                                    <input type="number" className="in-ft" value={showEmpty ? '' : (m.home_ft ?? '')} onChange={(e) => processUpdate(m.id, 'home_ft', e.target.value)} disabled={!isAdmin} />
                                                     <button className="stepper-btn plus mobile-only" onClick={() => handleStep(m.id, 'home_ft', 1)}>+</button>
 
                                                     <span className="score-dash">:</span>
 
                                                     <button className="stepper-btn minus mobile-only" onClick={() => handleStep(m.id, 'away_ft', -1)}>−</button>
-                                                    <input type="number" className="in-ft" value={m.away_ft ?? ''} onChange={(e) => processUpdate(m.id, 'away_ft', e.target.value)} disabled={!isAdmin} />
+                                                    <input type="number" className="in-ft" value={showEmpty ? '' : (m.away_ft ?? '')} onChange={(e) => processUpdate(m.id, 'away_ft', e.target.value)} disabled={!isAdmin} />
                                                     <button className="stepper-btn plus mobile-only" onClick={() => handleStep(m.id, 'away_ft', 1)}>+</button>
                                                 </div>
                                             </div>
@@ -343,7 +346,7 @@ const AdminMatchResults = () => {
                                                         {[1, 3, 2].map((val) => (
                                                             <button
                                                                 key={val}
-                                                                className={`toto-cube ${m.match_toto === String(val) ? 'active' : ''}`}
+                                                                className={`toto-cube ${showEmpty ? '' : (m.match_toto === String(val) ? 'active' : '')}`}
                                                                 onClick={() => processUpdate(m.id, 'match_toto', String(val))}
                                                                 disabled={!isAdmin}
                                                             >
@@ -355,7 +358,8 @@ const AdminMatchResults = () => {
                                             </div>
                                         </div>
                                     </div>
-                                ))}
+                                );
+                                })}
                             </div>
                         </div>
                     );
