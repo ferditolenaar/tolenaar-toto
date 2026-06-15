@@ -1632,3 +1632,11 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
+/* Highlight for current user row in leaderboard */
+.current-user-row {
+    background-color: rgba(46, 204, 113, 0.15) !important; /* light green to fit tournament theme, or maybe gold */
+    border-left: 4px solid #2ecc71 !important;
+}
+.current-user-row td {
+    font-weight: bold;
+}

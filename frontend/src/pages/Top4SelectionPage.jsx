@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import pb from '../lib/pocketbase';
+import { isMatchStarted } from '../lib/matchUtils';
 import '../Features.css';
 import '../Predictions.css';
 
@@ -44,8 +45,8 @@ const Top4SelectionPage = () => {
 
                     const groupMatches = matches.filter(m => m.stage === 'Groepsfase');
                     if (groupMatches.length > 0) {
-                        const lastGroup = new Date(groupMatches[groupMatches.length - 1].match_date);
-                        setIsPostOpen(now > new Date(lastGroup.getTime() + 120 * 60000));
+                        const lastGroup = groupMatches[groupMatches.length - 1];
+                        setIsPostOpen(isMatchStarted(lastGroup.match_date));
                     }
                 }
 

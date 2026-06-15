@@ -15,6 +15,26 @@ const PredictionsPage = () => {
     const [activeStages, setActiveStages] = useState(stageOrder);
     const [stageStatus, setStageStatus] = useState(null);
     const saveTrackerRef = React.useRef({});
+    const hasScrolledRef = React.useRef(false);
+
+    useEffect(() => {
+        if (matches.length > 0 && !hasScrolledRef.current) {
+            hasScrolledRef.current = true;
+            const now = new Date().getTime();
+            let targetMatch = matches.find(m => new Date(m.match_date).getTime() > now);
+            if (!targetMatch) {
+                targetMatch = matches[matches.length - 1];
+            }
+            if (targetMatch) {
+                setTimeout(() => {
+                    const matchEl = document.getElementById("match-" + targetMatch.id);
+                    if (matchEl) {
+                        matchEl.scrollIntoView({ behavior: "smooth", block: "center" });
+                    }
+                }, 100);
+            }
+        }
+    }, [matches]);
 
     useEffect(() => { loadData(); }, []);
 
@@ -436,7 +456,7 @@ const PredictionsPage = () => {
                             </h2>
                             <div className="matches-table-wrapper">
                                 {stageMatches.map(m => (
-                                    <div key={m.id} className={`match-row-wide ${isLocked ? 'row-disabled' : ''}`}>
+                                    <div key={m.id} id={`match-${m.id}`} className={`match-row-wide ${isLocked ? 'row-disabled' : ''}`}>
                                         <div className="cell-time desktop-date desktop-only">
                                             {formatDateTime(m.match_date, false)}
                                         </div>

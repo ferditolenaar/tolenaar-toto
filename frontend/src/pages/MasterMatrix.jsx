@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import pb from '../lib/pocketbase';
+import { isMatchStarted } from '../lib/matchUtils';
 import '../MasterGrid.css';
 import '../Features.css';
 
@@ -188,7 +189,7 @@ export default function MasterMatrix() {
     }, [data.matches]);
 
     const hasTournamentStarted = useMemo(() => {
-        return earliestMatchDate ? new Date() >= earliestMatchDate : false;
+        return earliestMatchDate ? isMatchStarted(earliestMatchDate) : false;
     }, [earliestMatchDate]);
 
     const tournamentStarted = hasTournamentStarted || DEBUG_LOCAL_TEST_START;

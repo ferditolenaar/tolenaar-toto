@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import pb from '../lib/pocketbase';
 import { calculateMatchPoints, calculateTop4Points } from '../lib/scoring';
+import { isMatchStarted } from '../lib/matchUtils';
 import '../Features.css';
 import '../Admin.css';
 
@@ -12,8 +13,28 @@ const AdminMatchResults = () => {
     const user = pb.authStore.model;
     const isAdmin = user?.role === 'admin';
 
-    const stageOrder = ['Groepsfase', 'Zestiende Finale', 'Achtste Finale', 'Kwartfinale', 'Halve activeStage inale', 'Troostfinale', 'Finale'];
+    const stageOrder = ['Groepsfase', 'Zestiende Finale', 'Achtste Finale', 'Kwartfinale', 'Halve Finale', 'Troostfinale', 'Finale'];
     const [activeStages, setActiveStages] = useState(stageOrder);
+    const hasScrolledRef = React.useRef(false);
+
+    useEffect(() => {
+        if (matches.length > 0 && !hasScrolledRef.current) {
+            hasScrolledRef.current = true;
+            const now = new Date().getTime();
+            let targetMatch = matches.find(m => new Date(m.match_date).getTime() > now);
+            if (!targetMatch) {
+                targetMatch = matches[matches.length - 1];
+            }
+            if (targetMatch) {
+                setTimeout(() => {
+                    const matchEl = document.getElementById("match-" + targetMatch.id);
+                    if (matchEl) {
+                        matchEl.scrollIntoView({ behavior: "smooth", block: "center" });
+                    }
+                }, 100);
+            }
+        }
+    }, [matches]);
 
     useEffect(() => { loadData(); }, []);
 
@@ -31,15 +52,17 @@ const AdminMatchResults = () => {
                 pb.collection('top_four_predictions').getFullList()
             ]);
 
+            const playedMatches = matches.filter(match => isMatchStarted(match.match_date));
+
             for (const user of users) {
                 let pA = 0, pB = 0, pC = 0;
 
                 // Match Points
                 predictions.filter(p => p.user === user.id).forEach(pred => {
-                    const m = matches.find(match => match.id === pred.match);
+                    const m = playedMatches.find(match => match.id === pred.match);
                     const pts = calculateMatchPoints(pred, m, rules);
                     if (m?.stage === 'Groepsfase') pA += pts;
-                    else pB += pts;
+                    else if (m) pB += pts;
                 });
 
                 // Top 4 Points
@@ -258,7 +281,7 @@ const AdminMatchResults = () => {
                             </h2>
                             <div className="matches-table-wrapper">
                                 {stageMatches.map(m => (
-                                    <div key={m.id} className="match-row-wide">
+                                    <div key={m.id} id={`match-${m.id}`} className="match-row-wide">
                                         <div className="cell-time desktop-date desktop-only">
                                             {formatDateTime(m.match_date, false)}
                                         </div>

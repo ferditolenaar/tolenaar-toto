@@ -1,10 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import pb from '../lib/pocketbase';
 import '../Features.css';
 
 const LeaderboardPage = () => {
     const [standings, setStandings] = useState([]);
     const [loading, setLoading] = useState(true);
+    const currentUserId = pb.authStore.model?.id;
+    const hasScrolledRef = useRef(false);
+
+    useEffect(() => {
+        if (standings.length > 0 && !hasScrolledRef.current && currentUserId) {
+            hasScrolledRef.current = true;
+            setTimeout(() => {
+                const userRow = document.getElementById("user-row-" + currentUserId);
+                if (userRow) {
+                    userRow.scrollIntoView({ behavior: "smooth", block: "center" });
+                }
+            }, 100);
+        }
+    }, [standings, currentUserId]);
 
     useEffect(() => {
         const fetchAllData = async () => {
@@ -63,7 +77,7 @@ const LeaderboardPage = () => {
                     </thead>
                     <tbody>
                         {standings.map((user, index) => (
-                            <tr key={user.id} className={index === 0 ? 'top-rank' : ''}>
+                            <tr key={user.id} id={"user-row-" + user.id} className={(index === 0 ? 'top-rank' : '') + (user.id === currentUserId ? ' current-user-row' : '')}>
                                 <td className="rank-cell">{index + 1}</td>
                                 <td className="name-cell">
                                     <div className="player-info-stack">

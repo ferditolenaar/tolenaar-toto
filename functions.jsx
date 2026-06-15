@@ -141,7 +141,7 @@ export default function StartPage() {
               phase: stageName === 'Groepsfase' ? 'GROEP' : 'KNOCKOUT',
               isLocked: stageLocked
             };
-            predictionVisible = !stageLocked;
+            predictionVisible = true;
           }
 
           setPredictionStats(predictionResult);
@@ -348,7 +348,7 @@ export default function StartPage() {
               )) : <p className="empty-txt">Geen wedstrijden op de planning.</p>}
             </div>
           </div>
-          <Link to={isRoundActive ? "/uitslagen" : "/voorspellen"} className={`card-action-btn ${isRoundActive ? 'blue-btn' : 'green-btn'}`}>{isRoundActive ? "Bekijk Uitslagen" : "Direct Voorspellen"}</Link>
+          <Link to={isRoundActive ? "/overzicht" : "/voorspellen"} className={`card-action-btn ${isRoundActive ? 'blue-btn' : 'green-btn'}`}>{isRoundActive ? "Bekijk Overzicht" : "Direct Voorspellen"}</Link>
         </div>
       </div>
     </div>
