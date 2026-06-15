@@ -329,7 +329,7 @@ export default function MasterMatrix() {
                                     Wedstrijden ({activeNudgeStage})
                                 </th>
                                 {filteredUsers.map((user) => (
-                                    <th key={`nudge-${user.id}`} className="nudge-cell">
+                                    <th key={`nudge-${user.id}`} className={`nudge-cell ${user.id === currentUserId ? 'is-current-user' : ''}`}>
                                         <div className={`nudge-pill ${userStats[user.id].isFinished ? 'complete' : 'incomplete'}`}>
                                             {userStats[user.id].completed} / {userStats[user.id].total}
                                         </div>
@@ -408,7 +408,7 @@ export default function MasterMatrix() {
                                         const totoCorrect = matchStarted && pred && pred.pred_toto === match.match_toto;
 
                                         return (
-                                            <td key={`${match.id}-${user.id}`} className="pred-cell-matrix">
+                                            <td key={`${match.id}-${user.id}`} className={`pred-cell-matrix ${user.id === currentUserId ? 'is-current-user' : ''}`}>
                                             <div className="matrix-score-grid">
                                                 <div className="score-row">
                                                     <span className={`s-mini ht ${htCorrect ? 'is-correct' : ''}`}>

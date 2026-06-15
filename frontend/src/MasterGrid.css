@@ -511,6 +511,20 @@ body {
     }
 }
 
+/* --- 9. Current User Highlight --- */
+.user-header.is-current-user {
+    background: #1a252f !important;
+    border-bottom: 3px solid #00d4ff !important;
+}
+
+.nudge-cell.is-current-user {
+    background: #e0f7fa !important;
+}
+
+.pred-cell-matrix.is-current-user {
+    background: rgba(0, 212, 255, 0.08) !important;
+}
+
 .admin-toggle-label {
     display: flex;
     align-items: center;
