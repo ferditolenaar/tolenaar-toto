@@ -13,11 +13,14 @@ export default function AdminTools() {
     const [batchUserId, setBatchUserId] = useState('');
     const [batchStatus, setBatchStatus] = useState('');
     const [users, setUsers] = useState([]);
+    const [matches, setMatches] = useState([]);
+    const [batchMatchId, setBatchMatchId] = useState('');
+    const [batchTotoFilter, setBatchTotoFilter] = useState('');
 
     // 1. Fetch teams to populate the admin dropdowns
     useEffect(() => {
         const loadTeams = async () => {
-            const teamList = await pb.collection('teams').getFullList({ sort: 'name' });
+            const teamList = await pb.collection('teams').getFullList({ sort: 'name', requestKey: null });
 
             const actualCountries = teamList.filter(team => {
                 const name = team.name.toLowerCase();
@@ -49,7 +52,7 @@ export default function AdminTools() {
         if (!selectedTournament) return;
         const fetchOfficial = async () => {
             try {
-                const res = await pb.collection('tournament_top4').getFirstListItem(`tournament="${selectedTournament}"`);
+                const res = await pb.collection('tournament_top4').getFirstListItem(`tournament="${selectedTournament}"`, { requestKey: null });
                 setOfficialResults({
                     rank_1: res.rank_1,
                     rank_2: res.rank_2,
@@ -57,12 +60,29 @@ export default function AdminTools() {
                     rank_4: res.rank_4,
                     id: res.id
                 });
-            } catch (e) {
+            } catch {
                 setOfficialResults({ rank_1: '', rank_2: '', rank_3: '', rank_4: '', id: null });
             }
         };
         fetchOfficial();
     }, [selectedTournament]);
+
+    // Fetch matches
+    useEffect(() => {
+        const fetchMatches = async () => {
+            try {
+                const records = await pb.collection('matches').getFullList({
+                    sort: 'match_date',
+                    expand: 'home_team,away_team',
+                    requestKey: null
+                });
+                setMatches(records);
+            } catch (err) {
+                console.error("Failed to load matches", err);
+            }
+        };
+        fetchMatches();
+    }, []);
 
     const saveOfficialResults = async () => {
         setStatus('Resultaten opslaan...');
@@ -90,7 +110,7 @@ export default function AdminTools() {
     useEffect(() => {
         const fetchTournaments = async () => {
             try {
-                const records = await pb.collection('tournaments').getFullList({ sort: '-year' });
+                const records = await pb.collection('tournaments').getFullList({ sort: '-year', requestKey: null });
                 setTournaments(records);
                 if (records.length > 0) setSelectedTournament(records[0].id);
             } catch (err) {
@@ -106,7 +126,6 @@ export default function AdminTools() {
         setStatus('Bezig met koppelen...');
         let createdCount = 0;
         let skippedCount = 0;
-        let errorCount = 0;
 
         try {
             // 1. Get every team you've ever created
@@ -122,7 +141,7 @@ export default function AdminTools() {
                         group_name: "" // You can fill this in manually in PB later
                     });
                     createdCount++;
-                } catch (err) {
+                } catch {
                     // If PocketBase returns an error (like "Unique constraint failed")
                     // we just count it as a skip and KEEP GOING.
                     skippedCount++;
@@ -154,7 +173,7 @@ export default function AdminTools() {
         let createdCount = 0;
         let skippedCount = 0;
 
-        if (!matchJsonInput || !selectedTournament) return setStatus('Error: Missing input/tournament');
+        if (!matchJsonInput) return setStatus('Error: Missing input');
         setStatus('Importing matches...');
 
         try {
@@ -173,7 +192,6 @@ export default function AdminTools() {
 
                     // 2. Create the record
                     await pb.collection('matches').create({
-                        tournament: selectedTournament,
                         home_team: homeId,
                         away_team: awayId || null,
                         match_date: m.match_date,
@@ -208,40 +226,54 @@ export default function AdminTools() {
         
         const user = users.find(u => u.id === batchUserId);
         const userName = user ? `${user.firstName} ${user.lastName}`.trim() : "Onbekend";
+        let cutoffDate = null;
+        if (batchMatchId) {
+            const selectedMatch = matches.find(m => m.id === batchMatchId);
+            if (selectedMatch) {
+                cutoffDate = new Date(selectedMatch.match_date).getTime();
+            }
+        }
 
         try {
-            // 2. Fetch all prediction records belonging to this user
-            const records = await pb.collection('predictions').getFullList({
+            const records = await pb.collection("predictions").getFullList({
                 filter: `user = "${batchUserId}"`,
                 requestKey: null
             });
 
-            console.log(`Found ${records.length} predictions for ${userName}. Processing updates...`);
             let updatedCount = 0;
 
-            // 3. Loop through and update records where the logic applies
             for (const record of records) {
-                let targetToto = '3'; // Default to Draw (equal)
+                const matchForPred = matches.find(m => m.id === record.match);
+                if (!matchForPred) continue;
 
-                if (record.pred_home_ft > record.pred_away_ft) {
-                    targetToto = '1'; // Home win
-                } else if (record.pred_home_ft < record.pred_away_ft) {
-                    targetToto = '2'; // Away win
+                if (cutoffDate !== null) {
+                    const matchDate = new Date(matchForPred.match_date).getTime();
+                    if (matchDate < cutoffDate) {
+                        continue;
+                    }
                 }
 
-                // Only trigger the network request if the value needs to change
+                // If a specific TOTO filter is selected, only process predictions that currently have this TOTO value
+                if (batchTotoFilter !== "" && String(record.pred_toto) !== String(batchTotoFilter)) {
+                    continue;
+                }
+
+                let targetToto = "3";
+                if (record.pred_home_ft > record.pred_away_ft) {
+                    targetToto = "1";
+                } else if (record.pred_home_ft < record.pred_away_ft) {
+                    targetToto = "2";
+                }
+
                 if (record.pred_toto !== targetToto) {
-                    await pb.collection('predictions').update(record.id, {
+                    await pb.collection("predictions").update(record.id, {
                         pred_toto: targetToto
                     }, { requestKey: null });
                     updatedCount++;
                 }
             }
-
             setBatchStatus(`Succesvol ${updatedCount} van de ${records.length} voorspellingen geüpdatet voor ${userName}.`);
-            console.log('Batch update completed successfully.');
         } catch (error) {
-            console.error('Error executing batch update:', error);
             setBatchStatus(`Fout bij updaten van voorspellingen: ${error.message}`);
         }
     };
@@ -305,21 +337,48 @@ export default function AdminTools() {
                         Deze tool controleert alle voorspellingen van een specifieke gebruiker. 
                         Als de 1x2 TOTO selectie niet overeenkomt met de voorspelde uitslag, wordt dit automatisch gecorrigeerd.
                     </p>
-                    <div style={{ display: "flex", gap: "10px", alignItems: "center", marginBottom: "10px" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "10px" }}>
                         <select
                             className="admin-select"
                             value={batchUserId}
                             onChange={(e) => setBatchUserId(e.target.value)}
-                            style={{ flex: 1, padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1", backgroundColor: "white" }}
+                            style={{ padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1", backgroundColor: "white" }}
                         >
                             <option value="">-- Selecteer een deelnemer --</option>
                             {users.map(u => (
                                 <option key={u.id} value={u.id}>
-                                    {u.firstName} {u.lastName} {u.email ? `(${u.email})` : ''}
+                                    {u.firstName} {u.lastName} {u.email ? `(${u.email})` : ""}
                                 </option>
                             ))}
                         </select>
-                        <button onClick={handleBatchUpdateUserPredictions} className="submit-btn" style={{ background: "#3b82f6", margin: 0, width: "auto" }}>
+
+                        <select
+                            className="admin-select"
+                            value={batchMatchId}
+                            onChange={(e) => setBatchMatchId(e.target.value)}
+                            style={{ padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1", backgroundColor: "white" }}
+                        >
+                            <option value="">-- Vanaf begin toernooi (Alle wedstrijden) --</option>
+                            {matches.map(m => (
+                                <option key={m.id} value={m.id}>
+                                    {m.expand?.home_team?.name || "Onbekend"} vs {m.expand?.away_team?.name || "Onbekend"} - {new Date(m.match_date).toLocaleString("nl-NL", { dateStyle: "short", timeStyle: "short" })}
+                                </option>
+                            ))}
+                        </select>
+
+                        <select
+                            className="admin-select"
+                            value={batchTotoFilter}
+                            onChange={(e) => setBatchTotoFilter(e.target.value)}
+                            style={{ padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1", backgroundColor: "white" }}
+                        >
+                            <option value="">-- Huidige TOTO filter (Alle) --</option>
+                            <option value="1">Alleen als huidige TOTO 1 is (Thuis)</option>
+                            <option value="2">Alleen als huidige TOTO 2 is (Uit)</option>
+                            <option value="3">Alleen als huidige TOTO 3 is (Gelijk)</option>
+                        </select>
+
+                        <button onClick={handleBatchUpdateUserPredictions} className="submit-btn" style={{ background: "#3b82f6", margin: 0 }}>
                             Update TOTO
                         </button>
                     </div>
