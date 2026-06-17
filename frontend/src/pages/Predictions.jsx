@@ -186,6 +186,13 @@ const PredictionsPage = () => {
         let cleanValue = field === 'toto' ? String(value) : (value === '' ? '' : Math.max(0, parseInt(value) || 0));
         const updated = { ...currentPred, [field]: cleanValue };
 
+        // Auto-TOTO Logic
+        if (field === 'home_ft' || field === 'away_ft') {
+            const h = parseInt(updated.home_ft) || 0;
+            const a = parseInt(updated.away_ft) || 0;
+            updated.toto = h > a ? '1' : a > h ? '2' : '3';
+        }
+
         // 1. Calculate new status INCLUDING the current change
         const newStatus = getStageLimitStatus(match.stage, matches, userPredictions, { matchId, data: updated });
 
