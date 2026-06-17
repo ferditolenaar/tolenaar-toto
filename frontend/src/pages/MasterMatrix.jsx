@@ -24,6 +24,7 @@ export default function MasterMatrix() {
     const [hideCompleted, setHideCompleted] = useState(false);
     const [loading, setLoading] = useState(true);
     const userRefs = useRef(new Map());
+    const matchRefs = useRef(new Map());
     const scrollContainerRef = useRef(null);
     const headerRef = useRef(null);
 
@@ -41,39 +42,102 @@ export default function MasterMatrix() {
     };
 
     useEffect(() => {
+        let isMounted = true;
+
         const fetchMatrixData = async () => {
             try {
                 setLoading(true);
-                const [allMatches, allUsers, allPreds, allTopFour] = await Promise.all([
-                    pb.collection('matches').getFullList({
-                        sort: 'match_date',
-                        expand: 'home_team,away_team',
-                    }),
-                    pb.collection('users').getFullList({ sort: 'order' }),
-                    pb.collection('predictions').getFullList({ requestKey: null }),
-                    // Safely fetch the top four predictions collection
-                    pb.collection('top_four_predictions').getFullList({ requestKey: null }).catch(() => [])
-                ]);
-                setData({ matches: allMatches, users: allUsers, predictions: allPreds, topFour: allTopFour });
+
+                // Check cache for static data
+                const CACHE_KEY = 'matrix_static_data';
+                const cachedDataStr = localStorage.getItem(CACHE_KEY);
+                let cachedStatic = null;
+                let doBackgroundFetch = true;
+
+                if (cachedDataStr) {
+                    try {
+                        const parsed = JSON.parse(cachedDataStr);
+                        cachedStatic = parsed.data;
+                        // If cache is less than 5 minutes old, skip background fetch to prevent unnecessary re-renders
+                        if (Date.now() - parsed.timestamp < 5 * 60 * 1000) {
+                            doBackgroundFetch = false;
+                        }
+                    } catch (e) {
+                        console.warn("Cache parse error", e);
+                    }
+                }
+
+                // Always fetch matches fresh
+                const matchesPromise = pb.collection('matches').getFullList({
+                    sort: 'match_date',
+                    expand: 'home_team,away_team',
+                });
+
+                if (cachedStatic) {
+                    // Fast path: wait only for matches
+                    const allMatches = await matchesPromise;
+                    if (!isMounted) return;
+                    
+                    setData({
+                        matches: allMatches,
+                        users: cachedStatic.users,
+                        predictions: cachedStatic.predictions,
+                        topFour: cachedStatic.topFour
+                    });
+                    setLoading(false);
+
+                    // Background refresh if cache is older than 5 minutes
+                    if (doBackgroundFetch) {
+                        Promise.all([
+                            pb.collection('users').getFullList({ sort: 'order' }),
+                            pb.collection('predictions').getFullList({ requestKey: null }),
+                            pb.collection('top_four_predictions').getFullList({ requestKey: null }).catch(() => [])
+                        ]).then(([allUsers, allPreds, allTopFour]) => {
+                            if (isMounted) {
+                                setData(prev => ({ ...prev, users: allUsers, predictions: allPreds, topFour: allTopFour }));
+                            }
+                            try {
+                                localStorage.setItem(CACHE_KEY, JSON.stringify({
+                                    timestamp: Date.now(),
+                                    data: { users: allUsers, predictions: allPreds, topFour: allTopFour }
+                                }));
+                            } catch (error) {
+                                console.warn("Cache write error", error);
+                            }
+                        }).catch(err => console.error("Background fetch error", err));
+                    }
+                } else {
+                    // Slow path: fetch everything
+                    const [allMatches, allUsers, allPreds, allTopFour] = await Promise.all([
+                        matchesPromise,
+                        pb.collection('users').getFullList({ sort: 'order' }),
+                        pb.collection('predictions').getFullList({ requestKey: null }),
+                        pb.collection('top_four_predictions').getFullList({ requestKey: null }).catch(() => [])
+                    ]);
+
+                    if (isMounted) {
+                        setData({ matches: allMatches, users: allUsers, predictions: allPreds, topFour: allTopFour });
+                        setLoading(false);
+                        
+                        try {
+                            localStorage.setItem(CACHE_KEY, JSON.stringify({
+                                timestamp: Date.now(),
+                                data: { users: allUsers, predictions: allPreds, topFour: allTopFour }
+                            }));
+                        } catch (error) { console.warn("Cache error", error); }
+                    }
+                }
             } catch (err) {
                 console.error("Matrix fetch error", err);
-            } finally {
-                setLoading(false);
+                if (isMounted) setLoading(false);
             }
         };
+        
         fetchMatrixData();
+        return () => { isMounted = false; };
     }, []);
 
-    // Auto-scroll to logged-in user when data loads
-    useEffect(() => {
-        if (loading || !pb.authStore.model?.id) return;
-        setTimeout(() => {
-            const userCell = userRefs.current.get(pb.authStore.model.id);
-            if (userCell) {
-                userCell.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-            }
-        }, 100);
-    }, [loading]);
+    // Auto-scroll removed from here, moved down
 
     const isStageOpen = (stageName, allMatches) => {
         if (SIMULATED_STAGE) {
@@ -210,6 +274,52 @@ export default function MasterMatrix() {
         [data.matches, tournamentStarted]
     );
 
+    const currentMatchId = useMemo(() => {
+        if (!visibleMatches || visibleMatches.length === 0) return null;
+        const now = new Date().getTime();
+        const targetMatch = visibleMatches.find(m => new Date(m.match_date).getTime() > now);
+        return targetMatch ? targetMatch.id : visibleMatches[visibleMatches.length - 1].id;
+    }, [visibleMatches]);
+
+    // Auto-scroll to logged-in user and current match when data loads
+    useEffect(() => {
+        if (loading || !scrollContainerRef.current) return;
+
+        setTimeout(() => {
+            const container = scrollContainerRef.current;
+            const containerRect = container.getBoundingClientRect();
+            
+            let targetScrollTop = container.scrollTop;
+            let targetScrollLeft = container.scrollLeft;
+            let shouldScroll = false;
+
+            // 1. Find user target (horizontal)
+            const currentUserId = pb.authStore.model?.id;
+            if (currentUserId) {
+                const userCell = userRefs.current.get(currentUserId);
+                if (userCell) {
+                    const userRect = userCell.getBoundingClientRect();
+                    targetScrollLeft = container.scrollLeft + (userRect.left - containerRect.left) - (containerRect.width / 2) + (userRect.width / 2);
+                    shouldScroll = true;
+                }
+            }
+
+            // 2. Find match target (vertical)
+            if (currentMatchId) {
+                const matchRow = matchRefs.current.get(currentMatchId);
+                if (matchRow) {
+                    const matchRect = matchRow.getBoundingClientRect();
+                    targetScrollTop = container.scrollTop + (matchRect.top - containerRect.top) - (containerRect.height / 2) + (matchRect.height / 2);
+                    shouldScroll = true;
+                }
+            }
+
+            if (shouldScroll) {
+                container.scrollTo({ top: Math.max(0, targetScrollTop), left: Math.max(0, targetScrollLeft), behavior: 'smooth' });
+            }
+        }, 150);
+    }, [loading, currentMatchId]);
+
     const topFourByUser = useMemo(() => {
         const map = {};
         (data.topFour || []).forEach(t => {
@@ -265,7 +375,19 @@ export default function MasterMatrix() {
         <div className="matrix-main-layout">
             <div className="screen-only">
                 <header ref={headerRef} className="page-header matrix-header-compact">
-                <h1 className="tournament-title">Matrix Overzicht</h1>
+                <h1 className="tournament-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    Matrix Overzicht
+                    <span 
+                        onClick={() => {
+                            localStorage.removeItem('matrix_static_data');
+                            window.location.reload();
+                        }}
+                        style={{ cursor: 'pointer', marginLeft: '10px', fontSize: '0.8em', opacity: 0.7 }}
+                        title="Forceer Herladen"
+                    >
+                        ↻
+                    </span>
+                </h1>
                 <div className="matrix-controls-centered">
                     <div className="search-wrapper-centered">
                         <input type="text" placeholder="Zoek een deelnemer..." className="matrix-search-input" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
@@ -377,7 +499,7 @@ export default function MasterMatrix() {
                                     return (
                                         <th key={`top4-compare-${user.id}`} className="nudge-cell">
                                             <div className="top4-compare-lines">
-                                                {['rank_1', 'rank_2', 'rank_3', 'rank_4'].map((rank, index) => (
+                                                {['rank_1', 'rank_2', 'rank_3', 'rank_4'].map((rank) => (
                                                     <div key={rank}>{teamNameById[record?.[rank]] || '-'}</div>
                                                 ))}
                                             </div>
@@ -392,7 +514,14 @@ export default function MasterMatrix() {
                             const matchStarted = isMatchStarted(match.match_date);
                             
                             return (
-                                <tr key={match.id}>
+                                <tr
+                                    key={match.id}
+                                    className={match.id === currentMatchId ? 'is-current-match' : ''}
+                                    ref={(el) => {
+                                        if (el) matchRefs.current.set(match.id, el);
+                                        else matchRefs.current.delete(match.id);
+                                    }}
+                                >
                                     <td className="sticky-col match-cell">
                                         <div className="matrix-match-info">
                                             <span className="m-code">{match.expand?.home_team?.code} - {match.expand?.away_team?.code}</span>

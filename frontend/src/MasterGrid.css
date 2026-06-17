@@ -535,3 +535,18 @@ body {
     text-transform: uppercase;
     cursor: pointer;
 }
+
+/* --- 10. Current Match Highlight --- */
+tr.is-current-match td.match-cell {
+    background: #fff9c4 !important; /* light yellow */
+    border-left: 4px solid #fbc02d;
+}
+
+tr.is-current-match td.pred-cell-matrix {
+    background: rgba(255, 235, 59, 0.15) !important;
+}
+
+/* Intersection of Current User and Current Match */
+tr.is-current-match td.pred-cell-matrix.is-current-user {
+    background: rgba(0, 212, 255, 0.25) !important; /* blend of blue highlight with yellow row */
+}
