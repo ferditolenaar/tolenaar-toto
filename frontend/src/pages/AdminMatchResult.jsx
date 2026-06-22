@@ -7,6 +7,7 @@ import '../Admin.css';
 
 const AdminMatchResults = () => {
     const [matches, setMatches] = useState([]);
+    const [allTeams, setAllTeams] = useState([]);
     const [isSyncing, setIsSyncing] = useState(false);
     const [lastSaved, setLastSaved] = useState(null);
 
@@ -87,16 +88,126 @@ const AdminMatchResults = () => {
         }
     };
 
+    const isPlaceholder = (team) => {
+        if (!team) return false;
+        const name = team.name.toLowerCase();
+        return name.includes('winnaar') || name.includes('1e') || name.includes('2e') ||
+            name.includes('3e') || name.includes('nummer') || name.includes('wedstrijd');
+    };
+
+    const actualTeams = allTeams.filter(t => !isPlaceholder(t));
+
+    const knockoutStages = stageOrder.filter(s => s !== 'Groepsfase');
+
     const loadData = async () => {
         try {
-            const matchRecords = await pb.collection('matches').getFullList({
-                sort: 'match_date',
-                expand: 'home_team,away_team',
-            });
-            setMatches(matchRecords);
+            const [matchRecords, teamRecords] = await Promise.all([
+                pb.collection('matches').getFullList({
+                    sort: 'match_date',
+                    expand: 'home_team,away_team,home_team_original,away_team_original',
+                }),
+                pb.collection('teams').getFullList({ sort: 'name' }),
+            ]);
+            setAllTeams(teamRecords);
+
+            // One-time: snapshot original placeholder teams for knockout matches
+            const toInit = matchRecords.filter(m =>
+                knockoutStages.includes(m.stage) &&
+                (!m.home_team_original || !m.away_team_original)
+            );
+
+            if (toInit.length > 0) {
+                await Promise.all(toInit.map(m => {
+                    const update = {};
+                    if (!m.home_team_original && m.home_team) update.home_team_original = m.home_team;
+                    if (!m.away_team_original && m.away_team) update.away_team_original = m.away_team;
+                    return Object.keys(update).length ? pb.collection('matches').update(m.id, update) : null;
+                }));
+
+                const refreshed = await pb.collection('matches').getFullList({
+                    sort: 'match_date',
+                    expand: 'home_team,away_team,home_team_original,away_team_original',
+                });
+                setMatches(refreshed);
+            } else {
+                setMatches(matchRecords);
+            }
         } catch (err) {
             console.error("Error loading matches:", err);
         }
+    };
+
+    const updateTeamInMatch = async (matchId, field, teamId) => {
+        try {
+            await pb.collection('matches').update(matchId, { [field]: teamId });
+            const updated = await pb.collection('matches').getOne(matchId, { expand: 'home_team,away_team,home_team_original,away_team_original' });
+            setMatches(prev => prev.map(m => m.id === matchId ? updated : m));
+        } catch (err) {
+            console.error("Team update mislukt", err);
+        }
+    };
+
+    const prevStageConfig = {
+        'Achtste Finale':  { stage: 'Zestiende Finale', type: 'winners' },
+        'Kwartfinale':     { stage: 'Achtste Finale',   type: 'winners' },
+        'Halve Finale':    { stage: 'Kwartfinale',      type: 'winners' },
+        'Finale':          { stage: 'Halve Finale',     type: 'winners' },
+        'Troostfinale':    { stage: 'Halve Finale',     type: 'losers'  },
+    };
+
+    const renderTeam = (match, side) => {
+        const field = side === 'home' ? 'home_team' : 'away_team';
+        const origField = side === 'home' ? 'home_team_original' : 'away_team_original';
+        const team = match.expand?.[field];
+        const originalTeam = match.expand?.[origField];
+        const isKnockout = match.stage !== 'Groepsfase';
+
+        if (isAdmin && isKnockout) {
+            const config = prevStageConfig[match.stage];
+            let eligibleTeams = actualTeams;
+
+            if (config) {
+                const prevMatches = groupedMatches[config.stage] || [];
+                const eligibleIds = new Set();
+                prevMatches.forEach(pm => {
+                    if (pm.match_toto === '3') {
+                        if (pm.home_team) eligibleIds.add(pm.home_team);
+                        if (pm.away_team) eligibleIds.add(pm.away_team);
+                    } else if (config.type === 'winners') {
+                        if (pm.match_toto === '1' && pm.home_team) eligibleIds.add(pm.home_team);
+                        else if (pm.match_toto === '2' && pm.away_team) eligibleIds.add(pm.away_team);
+                    } else {
+                        if (pm.match_toto === '1' && pm.away_team) eligibleIds.add(pm.away_team);
+                        else if (pm.match_toto === '2' && pm.home_team) eligibleIds.add(pm.home_team);
+                    }
+                });
+                if (eligibleIds.size > 0) eligibleTeams = actualTeams.filter(t => eligibleIds.has(t.id));
+            }
+
+            return (
+                <select
+                    className="team-select"
+                    value={match[field] || ''}
+                    onChange={(e) => updateTeamInMatch(match.id, field, e.target.value)}
+                >
+                    {originalTeam && (
+                        <option value={match[origField]}>{originalTeam.name}</option>
+                    )}
+                    <optgroup label="Landen">
+                        {eligibleTeams.map(t => (
+                            <option key={t.id} value={t.id}>{t.name}</option>
+                        ))}
+                    </optgroup>
+                </select>
+            );
+        }
+
+        return (
+            <>
+                <span className="desktop-only">{team?.name}</span>
+                <span className="mobile-only">{team?.code}</span>
+            </>
+        );
     };
 
     const [visibleStage, setVisibleStage] = useState(stageOrder[0]);
@@ -192,6 +303,17 @@ const AdminMatchResults = () => {
         acc[stage].push(match);
         return acc;
     }, {});
+
+    const saveMatchNumber = async (matchId, value) => {
+        const num = parseInt(value);
+        if (!num) return;
+        try {
+            await pb.collection('matches').update(matchId, { match_number: num });
+            setMatches(prev => prev.map(m => m.id === matchId ? { ...m, match_number: num } : m));
+        } catch (err) {
+            console.error("Match number opslaan mislukt", err);
+        }
+    };
 
     const formatDateTime = (dateStr, isMobile) => {
         const d = new Date(dateStr);
@@ -290,15 +412,27 @@ const AdminMatchResults = () => {
                                         </div>
                                         <div className="cell-city desktop-only">{m.match_city}</div>
 
+                                        {stageName !== 'Groepsfase' && (
+                                            isAdmin ? (
+                                                <input
+                                                    type="number"
+                                                    className="match-number-input"
+                                                    defaultValue={m.match_number || ''}
+                                                    placeholder="#"
+                                                    onBlur={(e) => saveMatchNumber(m.id, e.target.value)}
+                                                />
+                                            ) : (
+                                                m.match_number && <span className="match-number">#{m.match_number}</span>
+                                            )
+                                        )}
+
                                         <div className="mobile-team-container">
                                             <div className="cell-team">
-                                                <span className="desktop-only">{m.expand?.home_team?.name}</span>
-                                                <span className="mobile-only">{m.expand?.home_team?.code}</span>
+                                                {renderTeam(m, 'home')}
                                             </div>
                                             <span className="mobile-only team-vs">vs</span>
                                             <div className="cell-team">
-                                                <span className="desktop-only">{m.expand?.away_team?.name}</span>
-                                                <span className="mobile-only">{m.expand?.away_team?.code}</span>
+                                                {renderTeam(m, 'away')}
                                             </div>
                                         </div>
 

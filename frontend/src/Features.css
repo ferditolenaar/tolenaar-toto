@@ -1320,6 +1320,48 @@
     font-size: 1.1rem;
 }
 
+.match-number {
+    font-size: 0.75rem;
+    font-weight: bold;
+    opacity: 0.45;
+    min-width: 32px;
+    flex-shrink: 0;
+}
+
+.match-number-input {
+    width: 38px;
+    flex-shrink: 0;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+    color: inherit;
+    font-size: 0.75rem;
+    font-weight: bold;
+    opacity: 0.6;
+    padding: 0;
+    text-align: center;
+    -moz-appearance: textfield;
+}
+
+.match-number-input::-webkit-outer-spin-button,
+.match-number-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+}
+
+.team-select {
+    width: 100%;
+    max-width: 175px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+    color: inherit;
+    font-size: 1.1rem;
+    font-weight: bold;
+    padding: 0;
+    cursor: pointer;
+    appearance: auto;
+}
+
 .mobile-team-container {
     display: contents;
     /* Makes it invisible on desktop so children align to the row */
@@ -1639,4 +1681,33 @@
 }
 .current-user-row td {
     font-weight: bold;
+}
+
+/* --- Live Match Indicator --- */
+.live-dot-indicator {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.live-dot {
+    width: 8px;
+    height: 8px;
+    background: #e74c3c;
+    border-radius: 50%;
+    display: inline-block;
+    animation: live-pulse 1.5s ease-in-out infinite;
+}
+
+.live-label {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #e74c3c;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+@keyframes live-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.35; transform: scale(0.75); }
 }

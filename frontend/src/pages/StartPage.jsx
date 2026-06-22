@@ -340,6 +340,7 @@ export default function StartPage() {
                 const matchTime = new Date(match.match_date).getTime();
                 const now = new Date().getTime();
                 const isFinished = now > (matchTime + 2 * 60 * 60 * 1000);
+                const isOngoing = now > matchTime && !isFinished;
                 const hasResult = match.home_ft !== undefined && match.home_ft !== null && match.home_ft !== '';
 
                 return (
@@ -350,6 +351,11 @@ export default function StartPage() {
                     {isFinished && hasResult ? (
                       <span className="mini-time" style={{ fontWeight: 'bold' }}>
                         {match.home_ft} - {match.away_ft}
+                      </span>
+                    ) : isOngoing ? (
+                      <span className="live-dot-indicator">
+                        <span className="live-dot"></span>
+                        <span className="live-label">LIVE</span>
                       </span>
                     ) : (
                       <span className="mini-time">
