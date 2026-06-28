@@ -188,35 +188,55 @@ export default function MasterMatrix() {
         return stats;
     }, [data.predictions, data.matches, sortedUsers, activeNudgeStage]);
 
+    // True when group stage is done but first knockout match hasn't started yet
+    const isPostGroupTop4Window = useMemo(() => {
+        const groupMatches = data.matches.filter(m => m.stage === 'Groepsfase');
+        if (groupMatches.length === 0) return false;
+        const lastGroupDate = groupMatches.reduce((e, m) =>
+            new Date(m.match_date) > new Date(e) ? m.match_date : e,
+            groupMatches[0].match_date
+        );
+        const postGroupActive = Date.now() > new Date(lastGroupDate).getTime() + 2 * 60 * 60 * 1000;
+        return postGroupActive && !hasStageStarted('Zestiende Finale', data.matches);
+    }, [data.matches]);
+
     // Track Top 4 predictions progress dynamically per phase
     const topFourStats = useMemo(() => {
         const stats = {};
+        const activePhase = isPostGroupTop4Window ? 'post_group_stage' : 'pre_tournament';
 
         sortedUsers.forEach(user => {
-            const preRecord = data.topFour.find(p => p.user === user.id && p.phase === 'pre_tournament');
-            const completed = preRecord
-                ? ['rank_1', 'rank_2', 'rank_3', 'rank_4'].filter(key => !!preRecord[key]).length
+            const record = data.topFour.find(p => p.user === user.id && p.phase === activePhase);
+            const completed = record
+                ? ['rank_1', 'rank_2', 'rank_3', 'rank_4'].filter(key => !!record[key]).length
                 : 0;
 
             stats[user.id] = {
                 completed,
                 total: 4,
                 isFinished: completed === 4,
-                record: preRecord
+                record
             };
         });
         return stats;
-    }, [data.topFour, sortedUsers]);
+    }, [data.topFour, sortedUsers, isPostGroupTop4Window]);
 
     const filteredUsers = useMemo(() => {
         if (!hideCompleted) return sortedUsers;
         return sortedUsers.filter(user => {
             const matchFinished = !!userStats[user.id]?.isFinished;
-            const top4Finished = !!topFourStats[user.id]?.isFinished;
-            // Hide only when both match predictions and top-4 are finished
-            return !(matchFinished && top4Finished);
+            // Only factor top4 into "complete" when a top4 window is actually active
+            const firstMatchStarted = data.matches.length > 0 && isMatchStarted(
+                data.matches.reduce((e, m) => new Date(m.match_date) < new Date(e) ? m.match_date : e, data.matches[0].match_date)
+            );
+            const top4WindowActive = !firstMatchStarted || isPostGroupTop4Window;
+            if (top4WindowActive) {
+                const top4Finished = !!topFourStats[user.id]?.isFinished;
+                return !(matchFinished && top4Finished);
+            }
+            return !matchFinished;
         });
-    }, [sortedUsers, hideCompleted, userStats, topFourStats]);
+    }, [sortedUsers, hideCompleted, userStats, topFourStats, data.matches, isPostGroupTop4Window]);
 
     const predictionsByMatchUser = useMemo(() => {
         const map = {};
@@ -268,7 +288,10 @@ export default function MasterMatrix() {
     }, [earliestMatchDate]);
 
     const tournamentStarted = hasTournamentStarted || DEBUG_LOCAL_TEST_START;
-    const showAdminCounts = !tournamentStarted;
+    // Admins see match completion counts until the active stage's first match actually kicks off
+    const showMatchNudgeRow = isAdmin && activeNudgeStage !== 'Toernooi';
+    // Admins see top4 completion counts during pre-tournament AND during the post-group window
+    const showTop4NudgeRow = isAdmin && (!tournamentStarted || isPostGroupTop4Window);
     const showTopFourComparisonRow = tournamentStarted;
 
     const printUserChunks = useMemo(() => {
@@ -282,9 +305,8 @@ export default function MasterMatrix() {
     
     const visibleMatches = useMemo(() => {
         if (!tournamentStarted) return [];
-        if (isAdmin) return data.matches;
         return data.matches.filter(m => hasStageStarted(m.stage, data.matches));
-    }, [data.matches, tournamentStarted, isAdmin]);
+    }, [data.matches, tournamentStarted]);
 
     const currentMatchId = useMemo(() => {
         if (!visibleMatches || visibleMatches.length === 0) return null;
@@ -294,8 +316,10 @@ export default function MasterMatrix() {
     }, [visibleMatches]);
 
     // Auto-scroll to logged-in user and current match when data loads
+    // Disabled while predictions for the upcoming stage are still open — no current match to highlight yet
     useEffect(() => {
         if (loading || !scrollContainerRef.current) return;
+        if (activeNudgeStage !== 'Toernooi') return;
 
         setTimeout(() => {
             const container = scrollContainerRef.current;
@@ -330,7 +354,7 @@ export default function MasterMatrix() {
                 container.scrollTo({ top: Math.max(0, targetScrollTop), left: Math.max(0, targetScrollLeft), behavior: 'smooth' });
             }
         }, 150);
-    }, [loading, currentMatchId]);
+    }, [loading, currentMatchId, activeNudgeStage]);
 
     const topFourByUser = useMemo(() => {
         const map = {};
@@ -456,7 +480,7 @@ export default function MasterMatrix() {
                         </tr>
 
                         {/* ROW 2: CURRENT STAGE PROGRESS (The Match Nudge Row) */}
-                        {showAdminCounts && (
+                        {showMatchNudgeRow && (
                             <tr className="nudge-row-header">
                                 <th className="sticky-col matrix-header-cell stage-label-cell">
                                     Wedstrijden ({activeNudgeStage})
@@ -472,10 +496,10 @@ export default function MasterMatrix() {
                         )}
 
                         {/* ROW 3: TOP 4 SELECTION PROGRESS (The New Nudge Row) */}
-                        {showAdminCounts && (
+                        {showTop4NudgeRow && (
                             <tr className="nudge-row-header top-four-nudge-row">
                                 <th className="sticky-col matrix-header-cell stage-label-cell">
-                                    Top 4 Keuze
+                                    {isPostGroupTop4Window ? 'Knock-out Top 4' : 'Top 4 Keuze'}
                                 </th>
                                 {filteredUsers.map((user) => {
                                     const stats = topFourStats[user.id] || { completed: 0, total: 4, isFinished: false, record: null };
