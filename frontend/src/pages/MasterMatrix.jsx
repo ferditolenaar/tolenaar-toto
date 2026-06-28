@@ -30,8 +30,9 @@ export default function MasterMatrix() {
 
     const stageOrder = ['Groepsfase', 'Zestiende Finale', 'Achtste Finale', 'Kwartfinale', 'Halve Finale', 'Troostfinale', 'Finale'];
 
-    // Get current user ID early for use in effects
+    // Get current user ID and role early for use in effects and memos
     const currentUserId = pb.authStore.model?.id;
+    const isAdmin = pb.authStore.model?.role === 'admin';
 
     const scrollToUser = (userId) => {
         if (!userId || !scrollContainerRef.current) return;
@@ -153,6 +154,16 @@ export default function MasterMatrix() {
         return new Date().getTime() < new Date(earliest).getTime() - (30 * 60 * 1000);
     };
 
+    const hasStageStarted = (stageName, allMatches) => {
+        if (SIMULATED_STAGE) {
+            return stageOrder.indexOf(stageName) <= stageOrder.indexOf(SIMULATED_STAGE);
+        }
+        const stageMatches = allMatches.filter(m => m.stage === stageName);
+        if (stageMatches.length === 0) return false;
+        const earliest = stageMatches.reduce((e, c) => new Date(c.match_date) < new Date(e) ? c.match_date : e, stageMatches[0].match_date);
+        return new Date() >= new Date(earliest);
+    };
+
     const sortedUsers = useMemo(() => {
         return [...data.users].sort((a, b) => (a.order || 0) - (b.order || 0) || (a.lastName || "").localeCompare(b.lastName || ""));
     }, [data.users]);
@@ -269,10 +280,11 @@ export default function MasterMatrix() {
         return chunks;
     }, [filteredUsers]);
     
-    const visibleMatches = useMemo(
-        () => (tournamentStarted ? data.matches : []),
-        [data.matches, tournamentStarted]
-    );
+    const visibleMatches = useMemo(() => {
+        if (!tournamentStarted) return [];
+        if (isAdmin) return data.matches;
+        return data.matches.filter(m => hasStageStarted(m.stage, data.matches));
+    }, [data.matches, tournamentStarted, isAdmin]);
 
     const currentMatchId = useMemo(() => {
         if (!visibleMatches || visibleMatches.length === 0) return null;
@@ -369,7 +381,6 @@ export default function MasterMatrix() {
     }, []);
 
     if (loading) return <div>Laden...</div>;
-    const isAdmin = pb.authStore.model?.role === 'admin';
 
     return (
         <div className="matrix-main-layout">

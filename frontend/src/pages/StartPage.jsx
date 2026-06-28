@@ -147,14 +147,16 @@ export default function StartPage() {
           setPredictionStats(predictionResult);
           setShowPredictionStatus(predictionVisible);
 
-          // 4. Set Top 4 visibility
-          setShouldShowTop4(postGroupActive && !knockoutStarted);
+          // 4. Set Top 4 visibility — keep showing post-group top4 status during knockout rounds too
+          setShouldShowTop4(postGroupActive);
 
           if (userId) {
             try {
-              const top4Record = await pb.collection('top_four_predictions').getFirstListItem(`user = "${userId}"`, {
-                requestKey: null
-              });
+              const top4Phase = postGroupActive ? 'post_group_stage' : 'pre_tournament';
+              const top4Record = await pb.collection('top_four_predictions').getFirstListItem(
+                `user = "${userId}" && phase = "${top4Phase}"`,
+                { requestKey: null }
+              );
 
               const filledCount = [
                 top4Record.rank_1,
