@@ -141,6 +141,13 @@ body {
     vertical-align: middle;
 }
 
+/* Second sticky row (Top 4 F2): sits below F1 comparison row.
+   F1 actual height ≈ 90px (4 lines × 17.6px + gaps + label), so F2 top = 86 + 90 = 176px */
+.nudge-cell.nudge-row-2,
+.stage-label-cell.nudge-row-2 {
+    top: 176px;
+}
+
 /* --- 5. THE STICKY LEFT COLUMN --- */
 
 .sticky-col {

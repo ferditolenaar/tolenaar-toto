@@ -27,6 +27,8 @@ export default function MasterMatrix() {
     const matchRefs = useRef(new Map());
     const scrollContainerRef = useRef(null);
     const headerRef = useRef(null);
+    const f1RowRef = useRef(null);
+    const [f2StickyTop, setF2StickyTop] = useState(176);
 
     const stageOrder = ['Groepsfase', 'Zestiende Finale', 'Achtste Finale', 'Kwartfinale', 'Halve Finale', 'Troostfinale', 'Finale'];
 
@@ -414,6 +416,12 @@ export default function MasterMatrix() {
         return () => window.removeEventListener('resize', updateHeaderHeight);
     }, []);
 
+    useEffect(() => {
+        if (f1RowRef.current) {
+            setF2StickyTop(86 + f1RowRef.current.getBoundingClientRect().height);
+        }
+    }, [showTopFourComparisonRow, showPostGroupTop4Row, filteredUsers]);
+
     if (loading) return <div>Laden...</div>;
 
     return (
@@ -530,7 +538,7 @@ export default function MasterMatrix() {
                             </tr>
                         )}
                         {showTopFourComparisonRow && (
-                            <tr className="nudge-row-header top-four-nudge-row">
+                            <tr ref={f1RowRef} className="nudge-row-header top-four-nudge-row">
                                 <th className="sticky-col matrix-header-cell stage-label-cell">
                                     <div style={{ fontSize: '0.65em', opacity: 0.7, marginBottom: '2px' }}>Top 4 F1</div>
                                     <div className="top4-compare-lines">
@@ -555,7 +563,7 @@ export default function MasterMatrix() {
                         )}
                         {showPostGroupTop4Row && (
                             <tr className="nudge-row-header top-four-nudge-row">
-                                <th className="sticky-col matrix-header-cell stage-label-cell">
+                                <th className="sticky-col matrix-header-cell stage-label-cell nudge-row-2" style={{ top: f2StickyTop }}>
                                     <div style={{ fontSize: '0.65em', opacity: 0.7, marginBottom: '2px' }}>Top 4 F2</div>
                                     <div className="top4-compare-lines">
                                         {['1', '2', '3', '4'].map(rank => (
@@ -566,7 +574,7 @@ export default function MasterMatrix() {
                                 {filteredUsers.map((user) => {
                                     const record = topFourByUserPost[user.id];
                                     return (
-                                        <th key={`top4-compare-post-${user.id}`} className="nudge-cell">
+                                        <th key={`top4-compare-post-${user.id}`} className="nudge-cell nudge-row-2" style={{ top: f2StickyTop }}>
                                             <div className="top4-compare-lines">
                                                 {['rank_1', 'rank_2', 'rank_3', 'rank_4'].map((rank) => (
                                                     <div key={rank}>{teamNameById[record?.[rank]] || '-'}</div>
