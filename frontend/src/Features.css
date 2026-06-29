@@ -1256,6 +1256,42 @@
     gap: 15px;
 }
 
+.top4-reveal-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 8px;
+}
+
+.top4-reveal-entry {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    padding: 8px 10px;
+}
+
+.top4-reveal-name {
+    font-size: 0.65em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 5px;
+    color: #888;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.top4-reveal-pick {
+    font-size: 0.78em;
+    line-height: 1.7;
+    display: flex;
+    gap: 5px;
+}
+
+.top4-reveal-rank {
+    color: #888;
+    min-width: 12px;
+}
+
 .admin-input-group {
     display: flex;
     flex-direction: column;

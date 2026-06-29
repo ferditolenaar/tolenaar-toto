@@ -188,7 +188,8 @@ export default function MasterMatrix() {
         return stats;
     }, [data.predictions, data.matches, sortedUsers, activeNudgeStage]);
 
-    // True when group stage is done but first knockout match hasn't started yet
+    // True when group stage is done and Zestiende Finale predictions are still open
+    // (closes 30 min before the 2nd Zestiende Finale match, same cutoff as isStageOpen)
     const isPostGroupTop4Window = useMemo(() => {
         const groupMatches = data.matches.filter(m => m.stage === 'Groepsfase');
         if (groupMatches.length === 0) return false;
@@ -197,7 +198,7 @@ export default function MasterMatrix() {
             groupMatches[0].match_date
         );
         const postGroupActive = Date.now() > new Date(lastGroupDate).getTime() + 2 * 60 * 60 * 1000;
-        return postGroupActive && !hasStageStarted('Zestiende Finale', data.matches);
+        return postGroupActive && isStageOpen('Zestiende Finale', data.matches);
     }, [data.matches]);
 
     // Track Top 4 predictions progress dynamically per phase
@@ -293,6 +294,7 @@ export default function MasterMatrix() {
     // Admins see top4 completion counts during pre-tournament AND during the post-group window
     const showTop4NudgeRow = isAdmin && (!tournamentStarted || isPostGroupTop4Window);
     const showTopFourComparisonRow = tournamentStarted;
+    const showPostGroupTop4Row = hasStageStarted('Zestiende Finale', data.matches);
 
     const printUserChunks = useMemo(() => {
         const chunkSize = 18; // increase to 18 users per printed page for denser output
@@ -316,10 +318,8 @@ export default function MasterMatrix() {
     }, [visibleMatches]);
 
     // Auto-scroll to logged-in user and current match when data loads
-    // Disabled while predictions for the upcoming stage are still open — no current match to highlight yet
     useEffect(() => {
         if (loading || !scrollContainerRef.current) return;
-        if (activeNudgeStage !== 'Toernooi') return;
 
         setTimeout(() => {
             const container = scrollContainerRef.current;
@@ -354,12 +354,22 @@ export default function MasterMatrix() {
                 container.scrollTo({ top: Math.max(0, targetScrollTop), left: Math.max(0, targetScrollLeft), behavior: 'smooth' });
             }
         }, 150);
-    }, [loading, currentMatchId, activeNudgeStage]);
+    }, [loading, currentMatchId]);
 
     const topFourByUser = useMemo(() => {
         const map = {};
         (data.topFour || []).forEach(t => {
             if (t.phase === 'pre_tournament') {
+                map[t.user] = t;
+            }
+        });
+        return map;
+    }, [data.topFour]);
+
+    const topFourByUserPost = useMemo(() => {
+        const map = {};
+        (data.topFour || []).forEach(t => {
+            if (t.phase === 'post_group_stage') {
                 map[t.user] = t;
             }
         });
@@ -522,6 +532,7 @@ export default function MasterMatrix() {
                         {showTopFourComparisonRow && (
                             <tr className="nudge-row-header top-four-nudge-row">
                                 <th className="sticky-col matrix-header-cell stage-label-cell">
+                                    <div style={{ fontSize: '0.65em', opacity: 0.7, marginBottom: '2px' }}>Top 4 F1</div>
                                     <div className="top4-compare-lines">
                                         {['1', '2', '3', '4'].map(rank => (
                                             <div key={rank}>{rank}.</div>
@@ -530,9 +541,32 @@ export default function MasterMatrix() {
                                 </th>
                                 {filteredUsers.map((user) => {
                                     const record = topFourByUser[user.id];
-
                                     return (
                                         <th key={`top4-compare-${user.id}`} className="nudge-cell">
+                                            <div className="top4-compare-lines">
+                                                {['rank_1', 'rank_2', 'rank_3', 'rank_4'].map((rank) => (
+                                                    <div key={rank}>{teamNameById[record?.[rank]] || '-'}</div>
+                                                ))}
+                                            </div>
+                                        </th>
+                                    );
+                                })}
+                            </tr>
+                        )}
+                        {showPostGroupTop4Row && (
+                            <tr className="nudge-row-header top-four-nudge-row">
+                                <th className="sticky-col matrix-header-cell stage-label-cell">
+                                    <div style={{ fontSize: '0.65em', opacity: 0.7, marginBottom: '2px' }}>Top 4 F2</div>
+                                    <div className="top4-compare-lines">
+                                        {['1', '2', '3', '4'].map(rank => (
+                                            <div key={rank}>{rank}.</div>
+                                        ))}
+                                    </div>
+                                </th>
+                                {filteredUsers.map((user) => {
+                                    const record = topFourByUserPost[user.id];
+                                    return (
+                                        <th key={`top4-compare-post-${user.id}`} className="nudge-cell">
                                             <div className="top4-compare-lines">
                                                 {['rank_1', 'rank_2', 'rank_3', 'rank_4'].map((rank) => (
                                                     <div key={rank}>{teamNameById[record?.[rank]] || '-'}</div>

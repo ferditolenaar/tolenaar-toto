@@ -15,6 +15,7 @@ const Top4SelectionPage = () => {
 
     const [isPreLocked, setIsPreLocked] = useState(false);
     const [isPostOpen, setIsPostOpen] = useState(false);
+    const [isPostLocked, setIsPostLocked] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -45,8 +46,17 @@ const Top4SelectionPage = () => {
 
                     const groupMatches = matches.filter(m => m.stage === 'Groepsfase');
                     if (groupMatches.length > 0) {
-                        const lastGroup = groupMatches[groupMatches.length - 1];
-                        setIsPostOpen(isMatchStarted(lastGroup.match_date));
+                        const firstGroup = groupMatches[0];
+                        setIsPostOpen(isMatchStarted(firstGroup.match_date));
+                    }
+
+                    // Lock post-group top4 30 min before the first Zestiende Finale match
+                    const sixteenthMatches = matches
+                        .filter(m => m.stage === 'Zestiende Finale')
+                        .sort((a, b) => new Date(a.match_date) - new Date(b.match_date));
+                    if (sixteenthMatches.length >= 1) {
+                        const cutoff = new Date(sixteenthMatches[0].match_date).getTime() - 30 * 60000;
+                        setIsPostLocked(now.getTime() >= cutoff);
                     }
                 }
 
@@ -158,8 +168,8 @@ const Top4SelectionPage = () => {
 
                 {renderPhaseCard(
                     "Fase 2: Na de groepsfase",
-                    !isPostOpen ? "⏳ Beschikbaar na groepsfase" : "Kies vóór de knock-outs.",
-                    postSelection, setPostSelection, false, !isPostOpen, 'post_group_stage'
+                    !isPostOpen ? "⏳ Beschikbaar na groepsfase" : isPostLocked ? "🔒 Voorspelling gesloten" : "Kies vóór de knock-outs.",
+                    postSelection, setPostSelection, isPostLocked, !isPostOpen, 'post_group_stage'
                 )}
             </div>
 

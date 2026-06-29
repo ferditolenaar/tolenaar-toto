@@ -28,7 +28,9 @@ export default function StartPage() {
 
   // Phase logic states
   const [isPreTournamentLocked, setIsPreTournamentLocked] = useState(false);
+  const [isTournamentStarted, setIsTournamentStarted] = useState(false);
   const [isPostGroupActive, setIsPostGroupActive] = useState(false);
+  const [isPostTop4Locked, setIsPostTop4Locked] = useState(false);
   const [shouldShowTop4, setShouldShowTop4] = useState(false);
   const [showPredictionStatus, setShowPredictionStatus] = useState(false);
   const [isRoundActive, setIsRoundActive] = useState(false);
@@ -82,6 +84,7 @@ export default function StartPage() {
           const firstMatchTime = new Date(allMatches[0].match_date).getTime();
           const isLocked = todayTime > (firstMatchTime - 30 * 60000);
           setIsPreTournamentLocked(isLocked);
+          setIsTournamentStarted(todayTime >= firstMatchTime);
 
           const groupMatches = allMatches.filter(m => m.stage === 'Groepsfase');
           const lastGroupMatchTime = new Date(groupMatches[groupMatches.length - 1]?.match_date).getTime();
@@ -90,6 +93,15 @@ export default function StartPage() {
 
           const firstKnockout = allMatches.find(m => m.stage !== 'Groepsfase');
           const knockoutStarted = firstKnockout ? isMatchStarted(firstKnockout.match_date) : false;
+
+          // Post-group top4 closes 30 min before the first Zestiende Finale match
+          const sixteenthMatches = allMatches
+            .filter(m => m.stage === 'Zestiende Finale')
+            .sort((a, b) => new Date(a.match_date) - new Date(b.match_date));
+          const postTop4Cutoff = sixteenthMatches.length >= 1
+            ? new Date(sixteenthMatches[0].match_date).getTime() - 30 * 60000
+            : null;
+          setIsPostTop4Locked(postTop4Cutoff !== null && todayTime >= postTop4Cutoff);
 
           const stageWindows = stageOrder
             .filter(stage => allMatches.some(m => m.stage === stage))
@@ -119,40 +131,47 @@ export default function StartPage() {
           let predictionVisible = false;
 
           if (userId && activeStageWindow) {
-            const stageName = activeStageWindow.stage;
-            const stageFilterQuery = `match.stage = "${stageName}"`;
-            const userPredictions = await pb.collection('predictions').getFullList({
-              filter: `user = "${userId}" && (${stageFilterQuery})`,
-              requestKey: null
-            });
+            // If the current stage has already started, predict for the next stage instead
+            let predictionWindow = activeStageWindow;
+            if (isMatchStarted(activeStageWindow.matches[0].match_date)) {
+              const idx = stageWindows.indexOf(activeStageWindow);
+              predictionWindow = stageWindows[idx + 1] || null;
+            }
 
-            const total = activeStageWindow.matches.length;
-            const predicted = userPredictions.length;
-            const missing = total - predicted;
+            if (predictionWindow) {
+              const stageName = predictionWindow.stage;
+              const userPredictions = await pb.collection('predictions').getFullList({
+                filter: `user = "${userId}" && match.stage = "${stageName}"`,
+                requestKey: null
+              });
 
-            const stageLocked = isMatchStarted(activeStageWindow.matches[0].match_date);
+              const total = predictionWindow.matches.length;
+              const predicted = userPredictions.length;
+              const missing = total - predicted;
+              const stageLocked = todayTime >= new Date(predictionWindow.matches[0].match_date).getTime() - 30 * 60000;
 
-            predictionResult = {
-              total,
-              predicted,
-              missing,
-              isFinished: missing <= 0,
-              stageName,
-              phase: stageName === 'Groepsfase' ? 'GROEP' : 'KNOCKOUT',
-              isLocked: stageLocked
-            };
-            predictionVisible = !stageLocked;
+              predictionResult = {
+                total,
+                predicted,
+                missing,
+                isFinished: missing <= 0,
+                stageName,
+                phase: stageName === 'Groepsfase' ? 'GROEP' : 'KNOCKOUT',
+                isLocked: stageLocked
+              };
+              predictionVisible = true;
+            }
           }
 
           setPredictionStats(predictionResult);
           setShowPredictionStatus(predictionVisible);
 
-          // 4. Set Top 4 visibility — keep showing post-group top4 status during knockout rounds too
-          setShouldShowTop4(postGroupActive);
+          // 4. Top 4: always show; phase switches to post_group once tournament begins; locks when Zestiende Finale starts
+          setShouldShowTop4(true);
 
           if (userId) {
             try {
-              const top4Phase = postGroupActive ? 'post_group_stage' : 'pre_tournament';
+              const top4Phase = todayTime >= firstMatchTime ? 'post_group_stage' : 'pre_tournament';
               const top4Record = await pb.collection('top_four_predictions').getFirstListItem(
                 `user = "${userId}" && phase = "${top4Phase}"`,
                 { requestKey: null }
@@ -248,9 +267,9 @@ export default function StartPage() {
               {shouldShowTop4 && (
                 <div className="action-item">
                   <div className="card-header-sm">
-                    <h3>🏆 {isPostGroupActive ? "Knock-out Top 4" : "Top 4 Status"}</h3>
+                    <h3>🏆 {isTournamentStarted ? "Knock-out Top 4" : "Top 4 Voorspelling"}</h3>
                     <p className="status-txt">
-                      {isPreTournamentLocked && !isPostGroupActive ? (
+                      {isPostTop4Locked || (isPreTournamentLocked && !isTournamentStarted) ? (
                         "🔒 Gesloten"
                       ) : (
                         top4Stats.isFinished
@@ -268,8 +287,8 @@ export default function StartPage() {
                     ></div>
                   </div>
 
-                  <Link to="/top4" className={`card-action-btn-sm ${top4Stats.isFinished ? 'green-btn' : 'gold-btn'}`}>
-                    {isPreTournamentLocked && !isPostGroupActive
+                  <Link to="/top4" className="card-action-btn-sm green-btn">
+                    {isPostTop4Locked || (isPreTournamentLocked && !isTournamentStarted)
                       ? "Bekijk"
                       : (top4Stats.isFinished ? "Aanpassen" : "Voorspel Top 4")}
                   </Link>
@@ -298,7 +317,7 @@ export default function StartPage() {
 
                   <Link
                     to="/voorspellen"
-                    className={`card-action-btn-sm ${predictionStats.isLocked ? 'gray-btn' : 'green-btn'}`}
+                    className="card-action-btn-sm green-btn"
                   >
                     {predictionStats.isLocked ? "Bekijk Voorspellingen" : (predictionStats.isFinished ? "Aanpassen" : "Voorspel Wedstrijden")}
                   </Link>
