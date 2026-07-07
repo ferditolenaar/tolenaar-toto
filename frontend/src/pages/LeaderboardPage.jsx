@@ -5,11 +5,12 @@ import '../Features.css';
 const LeaderboardPage = () => {
     const [standings, setStandings] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [sortKey, setSortKey] = useState('points');
     const currentUserId = pb.authStore.model?.id;
     const hasScrolledRef = useRef(false);
 
     useEffect(() => {
-        if (standings.length > 0 && !hasScrolledRef.current && currentUserId) {
+        if (standings.length > 0 && !hasScrolledRef.current && currentUserId && sortKey === 'points') {
             hasScrolledRef.current = true;
             setTimeout(() => {
                 const userRow = document.getElementById("user-row-" + currentUserId);
@@ -18,7 +19,7 @@ const LeaderboardPage = () => {
                 }
             }, 100);
         }
-    }, [standings, currentUserId]);
+    }, [standings, currentUserId, sortKey]);
 
     useEffect(() => {
         const fetchAllData = async () => {
@@ -56,6 +57,14 @@ const LeaderboardPage = () => {
 
     if (loading) return <div className="loader">Stand laden...</div>;
 
+    const sorted = [...standings].sort((a, b) => b[sortKey] - a[sortKey]);
+
+    const SortHeader = ({ col, label, className }) => (
+        <th className={className} onClick={() => setSortKey(col)} style={{ cursor: 'pointer', userSelect: 'none' }}>
+            {label}{sortKey === col ? ' ▼' : ''}
+        </th>
+    );
+
     return (
         <div className="container-centered page-container">
             <header className="page-header tournament-theme">
@@ -69,14 +78,14 @@ const LeaderboardPage = () => {
                         <tr>
                             <th className="text-center">#</th>
                             <th className="text-left">Naam</th>
-                            <th className="text-right desktop-only">Groepsfase (A)</th>
-                            <th className="text-right desktop-only">Finales (B)</th>
-                            <th className="text-right desktop-only">Top 4 (C)</th>
-                            <th className="text-right">Totaal</th>
+                            <SortHeader col="partA" label="Groepsfase (A)" className="text-right desktop-only" />
+                            <SortHeader col="partB" label="Finales (B)" className="text-right desktop-only" />
+                            <SortHeader col="partC" label="Top 4 (C)" className="text-right desktop-only" />
+                            <SortHeader col="points" label="Totaal" className="text-right" />
                         </tr>
                     </thead>
                     <tbody>
-                        {standings.map((user, index) => (
+                        {sorted.map((user, index) => (
                             <tr key={user.id} id={"user-row-" + user.id} className={(index === 0 ? 'top-rank' : '') + (user.id === currentUserId ? ' current-user-row' : '')}>
                                 <td className="rank-cell">{index + 1}</td>
                                 <td className="name-cell">
