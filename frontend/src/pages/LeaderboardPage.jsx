@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import pb from '../lib/pocketbase';
 import '../Features.css';
 
@@ -6,6 +6,7 @@ const LeaderboardPage = () => {
     const [standings, setStandings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [sortKey, setSortKey] = useState('points');
+    const [sortDir, setSortDir] = useState('desc');
     const currentUserId = pb.authStore.model?.id;
     const hasScrolledRef = useRef(false);
 
@@ -25,13 +26,10 @@ const LeaderboardPage = () => {
         const fetchAllData = async () => {
             try {
                 setLoading(true);
-
-                // We only need the users table now!
-                // We filter for paid users and sort by total_points descending.
                 const users = await pb.collection('users').getFullList({
                     filter: 'paid = true',
                     sort: '-total_points',
-                    requestKey: null 
+                    requestKey: null
                 });
 
                 const formattedStandings = users.map(user => ({
@@ -40,11 +38,11 @@ const LeaderboardPage = () => {
                     partA: user.score_part_a || 0,
                     partB: user.score_part_b || 0,
                     partC: user.score_part_c || 0,
-                    points: user.total_points || 0
+                    points: user.total_points || 0,
+                    incomplete: !!user.incomplete
                 }));
 
                 setStandings(formattedStandings);
-
             } catch (err) {
                 if (!err.isAbort) console.error("Leaderboard error:", err);
             } finally {
@@ -55,15 +53,78 @@ const LeaderboardPage = () => {
         fetchAllData();
     }, []);
 
+    // Compute prize winners among fully complete users only
+    const prizeMap = useMemo(() => {
+        const complete = standings.filter(u => !u.incomplete).sort((a, b) => b.points - a.points);
+        const map = {};
+
+        const add = (id, prize) => {
+            map[id] = map[id] || [];
+            map[id].push(prize);
+        };
+
+        // Top 5 by total points
+        complete.slice(0, 5).forEach((u, i) => add(u.id, i === 0 ? 'top1' : 'top2to5'));
+
+        // Middle person
+        if (complete.length >= 3) {
+            add(complete[Math.floor((complete.length - 1) / 2)].id, 'middle');
+        }
+
+        // Second last
+        if (complete.length >= 2) {
+            add(complete[complete.length - 2].id, 'second-last');
+        }
+
+        // Category winners
+        [['partA', 'winner-a'], ['partB', 'winner-b']].forEach(([key, prize]) => {
+            const top = [...complete].sort((a, b) => b[key] - a[key])[0];
+            if (top) add(top.id, prize);
+        });
+
+        // C winner only valid once the final has been scored
+        const topC = [...complete].sort((a, b) => b.partC - a.partC)[0];
+        if (topC && topC.partC > 0) add(topC.id, 'winner-c');
+
+        return map;
+    }, [standings]);
+
     if (loading) return <div className="loader">Stand laden...</div>;
 
-    const sorted = [...standings].sort((a, b) => b[sortKey] - a[sortKey]);
+    const sorted = [...standings].sort((a, b) =>
+        sortDir === 'desc' ? b[sortKey] - a[sortKey] : a[sortKey] - b[sortKey]
+    );
+
+    const handleSort = (col) => {
+        if (col === sortKey) {
+            setSortDir(d => d === 'desc' ? 'asc' : 'desc');
+        } else {
+            setSortKey(col);
+            setSortDir('desc');
+        }
+    };
 
     const SortHeader = ({ col, label, className }) => (
-        <th className={className} onClick={() => setSortKey(col)} style={{ cursor: 'pointer', userSelect: 'none' }}>
-            {label}{sortKey === col ? ' ▼' : ''}
+        <th className={className} onClick={() => handleSort(col)} style={{ cursor: 'pointer', userSelect: 'none' }}>
+            {label}{sortKey === col ? (sortDir === 'desc' ? ' ▼' : ' ▲') : ''}
         </th>
     );
+
+    const PrizeBadges = ({ userId }) => {
+        const prizes = prizeMap[userId];
+        if (!prizes) return null;
+        return (
+            <>
+                {prizes.includes('top1') && <span className="prize-icon prize-cup-lg">🏆</span>}
+                {prizes.includes('top2to5') && <span className="prize-icon prize-cup-md">🏅</span>}
+                {prizes.includes('middle') && <span className="prize-icon prize-cup-sm">🏅</span>}
+                {prizes.includes('second-last') && <span className="prize-icon prize-cup-sm">🏅</span>}
+                {prizes.includes('winner-a') && <span className="prize-icon prize-letter">A</span>}
+                {prizes.includes('winner-b') && <span className="prize-icon prize-letter">B</span>}
+                {prizes.includes('winner-c') && <span className="prize-icon prize-letter">C</span>}
+            </>
+        );
+    };
 
     return (
         <div className="container-centered page-container">
@@ -73,40 +134,62 @@ const LeaderboardPage = () => {
             </header>
 
             <div className="leaderboard-card">
-                <table className="leaderboard-table">
-                    <thead>
-                        <tr>
-                            <th className="text-center">#</th>
-                            <th className="text-left">Naam</th>
-                            <SortHeader col="partA" label="Groepsfase (A)" className="text-right desktop-only" />
-                            <SortHeader col="partB" label="Finales (B)" className="text-right desktop-only" />
-                            <SortHeader col="partC" label="Top 4 (C)" className="text-right desktop-only" />
-                            <SortHeader col="points" label="Totaal" className="text-right" />
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {sorted.map((user, index) => (
-                            <tr key={user.id} id={"user-row-" + user.id} className={(index === 0 ? 'top-rank' : '') + (user.id === currentUserId ? ' current-user-row' : '')}>
-                                <td className="rank-cell">{index + 1}</td>
-                                <td className="name-cell">
-                                    <div className="player-info-stack">
-                                        <span className="player-full-name">
-                                            {user.name}
-                                            {index === 0 && <span className="trophy-icon"> 🏆</span>}
-                                        </span>
-                                        <div className="mobile-only mobile-score-breakdown">
-                                            A: {user.partA} | B: {user.partB} | C: {user.partC}
-                                        </div>
-                                    </div>
-                                </td>
-                                <td className="points-cell text-right secondary-pts desktop-only">{user.partA}</td>
-                                <td className="points-cell text-right secondary-pts desktop-only">{user.partB}</td>
-                                <td className="points-cell text-right secondary-pts desktop-only">{user.partC}</td>
-                                <td className="points-cell text-right total-pts"><strong>{user.points}</strong></td>
+                <div className="leaderboard-scroll">
+                    <table className="leaderboard-table">
+                        <thead>
+                            <tr>
+                                <th className="text-center">#</th>
+                                <th className="text-left">Naam</th>
+                                <SortHeader col="partA" label="Groepsfase (A)" className="text-right desktop-only" />
+                                <SortHeader col="partB" label="Finales (B)" className="text-right desktop-only" />
+                                <SortHeader col="partC" label="Top 4 (C)" className="text-right desktop-only" />
+                                <SortHeader col="points" label="Totaal" className="text-right" />
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {sorted.map((user, index) => (
+                                <tr key={user.id} id={"user-row-" + user.id}
+                                    className={[
+                                        index === 0 ? 'top-rank' : '',
+                                        user.id === currentUserId ? 'current-user-row' : '',
+                                        user.incomplete ? 'user-incomplete' : ''
+                                    ].filter(Boolean).join(' ')}
+                                >
+                                    <td className="rank-cell">{index + 1}</td>
+                                    <td className="name-cell">
+                                        <div className="player-info-stack">
+                                            <span className="player-full-name">
+                                                {user.name}{user.incomplete && <span className="incomplete-marker">*</span>}
+                                                <PrizeBadges userId={user.id} />
+                                            </span>
+                                            <div className="mobile-only mobile-score-breakdown">
+                                                A: {user.partA} | B: {user.partB} | C: {user.partC}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="points-cell text-right secondary-pts desktop-only">{user.partA}</td>
+                                    <td className="points-cell text-right secondary-pts desktop-only">{user.partB}</td>
+                                    <td className="points-cell text-right secondary-pts desktop-only">{user.partC}</td>
+                                    <td className="points-cell text-right total-pts"><strong>{user.points}</strong></td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div className="leaderboard-legend">
+                    <div className="legend-row">
+                        <span className="legend-item"><span className="prize-icon prize-cup-lg">🏆</span> 1e plek totaal</span>
+                        <span className="legend-item"><span className="prize-icon prize-cup-md">🏅</span> 2e–5e plek totaal</span>
+                        <span className="legend-item"><span className="prize-icon prize-cup-sm">🏅</span> Midden / Voorlaatste</span>
+                        <span className="legend-item"><span className="prize-icon prize-letter">A</span> Winnaar Groepsfase</span>
+                        <span className="legend-item"><span className="prize-icon prize-letter">B</span> Winnaar Finales</span>
+                        <span className="legend-item"><span className="prize-icon prize-letter">C</span> Winnaar Top 4</span>
+                    </div>
+                    <div className="legend-note">
+                        <span className="incomplete-marker">*</span> Niet volledig ingevuld — doet niet mee om de poedelprijzen
+                    </div>
+                </div>
             </div>
         </div>
     );

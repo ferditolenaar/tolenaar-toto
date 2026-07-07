@@ -984,17 +984,45 @@
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
+.leaderboard-scroll {
+    max-height: calc(100vh - 340px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(52, 73, 94, 0.4) transparent;
+}
+
+.leaderboard-scroll::-webkit-scrollbar {
+    width: 4px;
+}
+
+.leaderboard-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.leaderboard-scroll::-webkit-scrollbar-thumb {
+    background: rgba(52, 73, 94, 0.4);
+    border-radius: 2px;
+}
+
 .leaderboard-table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.leaderboard-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #f8f9fa;
+    box-shadow: 0 1px 0 #dee2e6;
 }
 
 .leaderboard-table th {
     color: #95a5a6;
     text-transform: uppercase;
     font-size: 0.8rem;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #34495e;
+    padding: 12px 10px 15px;
 }
 
 .leaderboard-table td {
@@ -1027,6 +1055,79 @@
 
 .trophy-icon {
     font-size: 1.2rem;
+}
+
+.prize-icon {
+    margin-left: 5px;
+    vertical-align: middle;
+    line-height: 1;
+}
+
+.prize-cup-lg {
+    font-size: 1.1rem;
+}
+
+.prize-cup-md {
+    font-size: 0.9rem;
+}
+
+.prize-cup-sm {
+    font-size: 0.72rem;
+    opacity: 0.8;
+}
+
+.prize-letter {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 17px;
+    height: 17px;
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+    color: #1a1a2e;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    vertical-align: middle;
+    margin-left: 4px;
+}
+
+.user-incomplete {
+    opacity: 0.45;
+}
+
+.incomplete-marker {
+    color: #95a5a6;
+    font-size: 0.85em;
+    margin-left: 2px;
+    vertical-align: super;
+    font-weight: 400;
+}
+
+.leaderboard-legend {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    font-size: 0.75rem;
+    color: #7f8c8d;
+}
+
+.legend-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 20px;
+    margin-bottom: 8px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+.legend-note {
+    font-size: 0.72rem;
+    opacity: 0.75;
 }
 
 
