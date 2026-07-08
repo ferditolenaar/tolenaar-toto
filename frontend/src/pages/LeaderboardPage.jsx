@@ -53,38 +53,62 @@ const LeaderboardPage = () => {
         fetchAllData();
     }, []);
 
-    // Compute prize winners among fully complete users only
+    // Compute prize winners
     const prizeMap = useMemo(() => {
-        const complete = standings.filter(u => !u.incomplete).sort((a, b) => b.points - a.points);
         const map = {};
-
         const add = (id, prize) => {
             map[id] = map[id] || [];
-            map[id].push(prize);
+            if (!map[id].includes(prize)) map[id].push(prize);
         };
 
-        // Top 5 by total points
-        complete.slice(0, 5).forEach((u, i) => add(u.id, i === 0 ? 'top1' : 'top2to5'));
+        const complete = standings.filter(u => !u.incomplete);
+        const completeByPoints = [...complete].sort((a, b) => b.points - a.points);
 
-        // Middle person
-        if (complete.length >= 3) {
-            add(complete[Math.floor((complete.length - 1) / 2)].id, 'middle');
+        // Top 1 and 2-5 by total points, among complete users only. Ties share the prize;
+        // nobody wins while the leader is still at 0 points.
+        if (completeByPoints.length > 0 && completeByPoints[0].points > 0) {
+            const topScore = completeByPoints[0].points;
+            completeByPoints.filter(u => u.points === topScore).forEach(u => add(u.id, 'top1'));
+            completeByPoints
+                .filter(u => u.points !== topScore)
+                .slice(0, 4)
+                .forEach(u => add(u.id, 'top2to5'));
         }
 
-        // Second last
-        if (complete.length >= 2) {
-            add(complete[complete.length - 2].id, 'second-last');
+        // Middle: position is determined across everyone (complete and incomplete). If the
+        // slot lands on an incomplete user, they can't win it - instead the nearest complete
+        // users above and below that position split the prize.
+        const fullByPoints = [...standings].sort((a, b) => b.points - a.points);
+        if (fullByPoints.length >= 3) {
+            const midIdx = Math.floor((fullByPoints.length - 1) / 2);
+            const midUser = fullByPoints[midIdx];
+            if (!midUser.incomplete) {
+                add(midUser.id, 'middle');
+            } else {
+                for (let i = midIdx - 1; i >= 0; i--) {
+                    if (!fullByPoints[i].incomplete) { add(fullByPoints[i].id, 'middle'); break; }
+                }
+                for (let i = midIdx + 1; i < fullByPoints.length; i++) {
+                    if (!fullByPoints[i].incomplete) { add(fullByPoints[i].id, 'middle'); break; }
+                }
+            }
         }
 
-        // Category winners
-        [['partA', 'winner-a'], ['partB', 'winner-b']].forEach(([key, prize]) => {
-            const top = [...complete].sort((a, b) => b[key] - a[key])[0];
-            if (top) add(top.id, prize);
+        // Second-last: determined among complete users only, so incomplete users at the
+        // bottom of the field are skipped entirely.
+        if (completeByPoints.length >= 2) {
+            add(completeByPoints[completeByPoints.length - 2].id, 'second-last');
+        }
+
+        // Category winners, among complete users only. Ties share the prize; a category with
+        // nobody above 0 (e.g. C before the final has been scored) has no winner yet.
+        [['partA', 'winner-a'], ['partB', 'winner-b'], ['partC', 'winner-c']].forEach(([key, prize]) => {
+            if (complete.length === 0) return;
+            const topScore = Math.max(...complete.map(u => u[key]));
+            if (topScore > 0) {
+                complete.filter(u => u[key] === topScore).forEach(u => add(u.id, prize));
+            }
         });
-
-        // C winner only valid once the final has been scored
-        const topC = [...complete].sort((a, b) => b.partC - a.partC)[0];
-        if (topC && topC.partC > 0) add(topC.id, 'winner-c');
 
         return map;
     }, [standings]);
