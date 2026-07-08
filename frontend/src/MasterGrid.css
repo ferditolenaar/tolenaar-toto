@@ -220,6 +220,11 @@ body {
     text-align: center;
 }
 
+.top4-pick-eliminated {
+    text-decoration: line-through;
+    color: #95a5a6;
+}
+
 .nudge-pill {
     padding: 2px 10px;
     border-radius: 50px;
