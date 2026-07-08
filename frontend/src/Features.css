@@ -1063,11 +1063,19 @@
     line-height: 1;
 }
 
-.prize-cup-lg {
+.prize-medal-gold {
     font-size: 1.1rem;
 }
 
-.prize-cup-md {
+.prize-medal-silver {
+    font-size: 1.05rem;
+}
+
+.prize-medal-bronze {
+    font-size: 1rem;
+}
+
+.prize-medal-plain {
     font-size: 0.9rem;
 }
 

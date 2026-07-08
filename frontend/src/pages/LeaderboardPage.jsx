@@ -64,15 +64,25 @@ const LeaderboardPage = () => {
         const complete = standings.filter(u => !u.incomplete);
         const completeByPoints = [...complete].sort((a, b) => b.points - a.points);
 
-        // Top 1 and 2-5 by total points, among complete users only. Ties share the prize;
-        // nobody wins while the leader is still at 0 points.
+        // Top 5 by total points, among complete users only: a gold/silver/bronze/medal/medal
+        // ladder. A tied group shares a single tier and consumes one ladder slot per member,
+        // pushing later tiers down - e.g. two people tied for 1st both get gold and the next
+        // group gets bronze (silver is skipped). Nobody wins while the leader is at 0 points.
+        const TIERS = ['top-gold', 'top-silver', 'top-bronze', 'top-medal', 'top-medal'];
         if (completeByPoints.length > 0 && completeByPoints[0].points > 0) {
-            const topScore = completeByPoints[0].points;
-            completeByPoints.filter(u => u.points === topScore).forEach(u => add(u.id, 'top1'));
-            completeByPoints
-                .filter(u => u.points !== topScore)
-                .slice(0, 4)
-                .forEach(u => add(u.id, 'top2to5'));
+            let slot = 0;
+            let i = 0;
+            while (i < completeByPoints.length && slot < TIERS.length) {
+                const score = completeByPoints[i].points;
+                const group = [];
+                while (i < completeByPoints.length && completeByPoints[i].points === score) {
+                    group.push(completeByPoints[i]);
+                    i++;
+                }
+                const tier = TIERS[slot];
+                group.forEach(u => add(u.id, tier));
+                slot += group.length;
+            }
         }
 
         // Middle: position is determined across everyone (complete and incomplete). If the
@@ -139,8 +149,10 @@ const LeaderboardPage = () => {
         if (!prizes) return null;
         return (
             <>
-                {prizes.includes('top1') && <span className="prize-icon prize-cup-lg">🏆</span>}
-                {prizes.includes('top2to5') && <span className="prize-icon prize-cup-md">🏅</span>}
+                {prizes.includes('top-gold') && <span className="prize-icon prize-medal-gold">🥇</span>}
+                {prizes.includes('top-silver') && <span className="prize-icon prize-medal-silver">🥈</span>}
+                {prizes.includes('top-bronze') && <span className="prize-icon prize-medal-bronze">🥉</span>}
+                {prizes.includes('top-medal') && <span className="prize-icon prize-medal-plain">🏅</span>}
                 {prizes.includes('middle') && <span className="prize-icon prize-cup-sm">🏅</span>}
                 {prizes.includes('second-last') && <span className="prize-icon prize-cup-sm">🏅</span>}
                 {prizes.includes('winner-a') && <span className="prize-icon prize-letter">A</span>}
@@ -203,8 +215,10 @@ const LeaderboardPage = () => {
 
                 <div className="leaderboard-legend">
                     <div className="legend-row">
-                        <span className="legend-item"><span className="prize-icon prize-cup-lg">🏆</span> 1e plek totaal</span>
-                        <span className="legend-item"><span className="prize-icon prize-cup-md">🏅</span> 2e–5e plek totaal</span>
+                        <span className="legend-item"><span className="prize-icon prize-medal-gold">🥇</span> 1e plek totaal</span>
+                        <span className="legend-item"><span className="prize-icon prize-medal-silver">🥈</span> 2e plek totaal</span>
+                        <span className="legend-item"><span className="prize-icon prize-medal-bronze">🥉</span> 3e plek totaal</span>
+                        <span className="legend-item"><span className="prize-icon prize-medal-plain">🏅</span> 4e–5e plek totaal</span>
                         <span className="legend-item"><span className="prize-icon prize-cup-sm">🏅</span> Midden / Voorlaatste</span>
                         <span className="legend-item"><span className="prize-icon prize-letter">A</span> Winnaar Groepsfase</span>
                         <span className="legend-item"><span className="prize-icon prize-letter">B</span> Winnaar Finales</span>
