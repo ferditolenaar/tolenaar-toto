@@ -389,32 +389,44 @@ export default function MasterMatrix() {
         return map;
     }, [data.matches]);
 
-    // Once every Achtste Finale match has a real (non-placeholder) team on both sides,
-    // any Top 4 pick that isn't among those teams has been eliminated.
+    // Walk forward through the knockout stages (Achtste Finale -> Kwartfinale -> Halve Finale) and use
+    // the *latest* stage whose teams are all real (non-placeholder) as the "still alive" set. This way,
+    // once Kwartfinale is fully drawn, teams that were in the Achtste Finale but didn't advance any
+    // further (e.g. lost their Achtste Finale match) are correctly treated as eliminated too.
     const isPlaceholderTeamName = (name) => {
         if (!name) return true;
         const n = name.toLowerCase();
         return ['winnaar', '1e', '2e', '3e', 'nummer', 'wedstrijd'].some(needle => n.includes(needle));
     };
 
-    const achtsteFinaleStatus = useMemo(() => {
-        const stageMatches = data.matches.filter(m => m.stage === 'Achtste Finale');
-        const teamIds = new Set();
-        if (stageMatches.length === 0) return { ready: false, teamIds };
+    const knockoutTeamStages = ['Achtste Finale', 'Kwartfinale', 'Halve Finale'];
 
-        let allChosen = true;
-        stageMatches.forEach(match => {
-            const home = match.expand?.home_team;
-            const away = match.expand?.away_team;
-            if (home && !isPlaceholderTeamName(home.name)) teamIds.add(home.id); else allChosen = false;
-            if (away && !isPlaceholderTeamName(away.name)) teamIds.add(away.id); else allChosen = false;
-        });
-        return { ready: allChosen, teamIds };
+    const survivingTeamsStatus = useMemo(() => {
+        let result = { ready: false, teamIds: new Set() };
+
+        for (const stageName of knockoutTeamStages) {
+            const stageMatches = data.matches.filter(m => m.stage === stageName);
+            if (stageMatches.length === 0) break;
+
+            const teamIds = new Set();
+            let allChosen = true;
+            stageMatches.forEach(match => {
+                const home = match.expand?.home_team;
+                const away = match.expand?.away_team;
+                if (home && !isPlaceholderTeamName(home.name)) teamIds.add(home.id); else allChosen = false;
+                if (away && !isPlaceholderTeamName(away.name)) teamIds.add(away.id); else allChosen = false;
+            });
+
+            if (!allChosen) break;
+            result = { ready: true, teamIds };
+        }
+
+        return result;
     }, [data.matches]);
 
     const isEliminatedPick = (teamId) => {
-        if (!teamId || !achtsteFinaleStatus.ready) return false;
-        return !achtsteFinaleStatus.teamIds.has(teamId);
+        if (!teamId || !survivingTeamsStatus.ready) return false;
+        return !survivingTeamsStatus.teamIds.has(teamId);
     };
 
     const handleOrderChange = async (userId, newOrder) => {
