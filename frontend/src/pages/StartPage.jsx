@@ -1,12 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import pb from '../lib/pocketbase';
 import { isMatchStarted } from '../lib/matchUtils';
+import { computePrizeMap, MEDAL_PRIZES, OTHER_PRIZES } from '../lib/prizes';
+import PrizeBadges from '../components/PrizeBadges';
 import { Link } from 'react-router-dom';
 import '../Features.css';
 
 export default function StartPage() {
   const [matches, setMatches] = useState([]);
-  const [leaderboard, setLeaderboard] = useState([]);
+  const [standings, setStandings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activePhase, setActivePhase] = useState('GROEP'); // Default
 
@@ -36,6 +38,9 @@ export default function StartPage() {
   const [isRoundActive, setIsRoundActive] = useState(false);
   const [activeRoundStage, setActiveRoundStage] = useState(null);
 
+  const prizeMap = useMemo(() => computePrizeMap(standings), [standings]);
+  const top5 = standings.slice(0, 5);
+
   const stageOrder = ['Groepsfase', 'Zestiende Finale', 'Achtste Finale', 'Kwartfinale', 'Halve Finale', 'Troostfinale', 'Finale'];
   const STAGE_GRACE_MS = 2 * 60 * 60 * 1000;
 
@@ -63,14 +68,22 @@ export default function StartPage() {
         const todayTime = today.getTime();
         const userId = pb.authStore.model?.id;
 
-        // 1. Fetch Leaderboard
-        const topUsers = await pb.collection('users').getList(1, 5, {
+        // 1. Fetch Leaderboard (full standings, needed to compute prize badges correctly)
+        const allUsers = await pb.collection('users').getFullList({
           filter: 'paid = true',
           sort: '-total_points',
-          batch: 5,
           requestKey: null
         });
-        setLeaderboard(topUsers.items);
+        setStandings(allUsers.map(user => ({
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          partA: user.score_part_a || 0,
+          partB: user.score_part_b || 0,
+          partC: user.score_part_c || 0,
+          points: user.total_points || 0,
+          incomplete: !!user.incomplete
+        })));
 
         // 2. Fetch All Matches
         const allMatches = await pb.collection('matches').getFullList({
@@ -338,13 +351,26 @@ export default function StartPage() {
           </div>
           <div className="card-content">
             <div className="leaderboard-mini">
-              {leaderboard.map((user, index) => (
-                <div key={user.id} className="mini-row">
-                  <span className={`mini-rank rank-${index + 1}`}>{index + 1}</span>
-                  <span className="mini-name">{`${user.firstName} ${user.lastName}`}</span>
-                  <span className="mini-points">{user.total_points || 0}</span>
-                </div>
-              ))}
+              {top5.map((user, index) => {
+                const prizes = prizeMap[user.id] || [];
+                const tierClass = prizes.includes('top-gold') ? 'tier-gold'
+                  : prizes.includes('top-silver') ? 'tier-silver'
+                  : prizes.includes('top-bronze') ? 'tier-bronze'
+                  : '';
+                return (
+                  <div key={user.id} className="mini-row">
+                    <span className={`mini-rank rank-${index + 1} ${tierClass}`}>{index + 1}</span>
+                    <span className="mini-medals">
+                      <PrizeBadges prizeMap={prizeMap} userId={user.id} only={MEDAL_PRIZES} />
+                    </span>
+                    <span className="mini-name">
+                      {`${user.firstName} ${user.lastName}`}
+                      <PrizeBadges prizeMap={prizeMap} userId={user.id} only={OTHER_PRIZES} />
+                    </span>
+                    <span className="mini-points">{user.points || 0}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
           <Link to="/stand" className="card-action-btn blue-btn">Bekijk Volledige Stand</Link>

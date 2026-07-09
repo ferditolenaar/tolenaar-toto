@@ -306,19 +306,15 @@
     width: 100%;
 }
 
-/* --- Leaderboard Medals (Restored) --- */
-.mini-row:nth-child(1) .mini-rank { color: #FFD700; font-size: 1.2rem; } 
-.mini-row:nth-child(2) .mini-rank { color: #C0C0C0; font-size: 1.2rem; } 
-.mini-row:nth-child(3) .mini-rank { color: #CD7F32; font-size: 1.2rem; } 
+/* --- Leaderboard rank number styling: colored by actual prize tier, not row position,
+   so tied users share the same color instead of drifting by index. --- */
+.mini-rank.tier-gold { color: #FFD700; font-size: 1.2rem; }
+.mini-rank.tier-silver { color: #C0C0C0; font-size: 1.2rem; }
+.mini-rank.tier-bronze { color: #CD7F32; font-size: 1.2rem; }
 
-.mini-row:nth-child(1) .mini-rank::after { content: "🥇"; margin-left: 4px; }
-.mini-row:nth-child(2) .mini-rank::after { content: "🥈"; margin-left: 4px; }
-.mini-row:nth-child(3) .mini-rank::after { content: "🥉"; margin-left: 4px; }
-
-/* Clean up the rank number if using emojis */
 .mini-rank {
     font-weight: 800;
-    min-width: 45px;
+    min-width: 22px;
     display: inline-block;
 }
 
@@ -455,6 +451,10 @@
     align-items: center;
     padding: 12px 0;
     border-bottom: 1px solid #f0f0f0;
+}
+
+.mini-medals .prize-icon {
+    margin-left: 2px;
 }
 
 .mini-name {
@@ -1063,7 +1063,7 @@
     line-height: 1;
 }
 
-.prize-medal-gold {
+.prize-cup-gold {
     font-size: 1.1rem;
 }
 
