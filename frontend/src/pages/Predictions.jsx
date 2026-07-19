@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import pb from '../lib/pocketbase';
+import { isStageLocked } from '../lib/matchUtils';
 import '../Features.css';
 import '../Predictions.css';
 
@@ -111,16 +112,7 @@ const PredictionsPage = () => {
         }
     };
 
-    const isStageEditable = (stageName, allMatches) => {
-        if (!allMatches || allMatches.length === 0) return true;
-        const stageMatches = allMatches.filter(m => m.stage === stageName);
-        if (stageMatches.length === 0) return true;
-        const earliestMatchDate = stageMatches.reduce((earliest, current) => {
-            return new Date(current.match_date) < new Date(earliest) ? current.match_date : earliest;
-        }, stageMatches[0].match_date);
-        const deadline = new Date(earliestMatchDate).getTime() - (30 * 60 * 1000);
-        return new Date().getTime() < deadline;
-    };
+    const isStageEditable = (stageName, allMatches) => !isStageLocked(stageName, allMatches);
 
     const getStageLimitStatus = (stageName, allMatches, allPredictions, pendingUpdate = null) => {
         const exemptStages = ['Halve Finale', 'Troostfinale', 'Finale'];

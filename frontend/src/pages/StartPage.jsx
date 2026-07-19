@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import pb from '../lib/pocketbase';
-import { isMatchStarted } from '../lib/matchUtils';
+import { isMatchStarted, isStageLocked } from '../lib/matchUtils';
 import { computePrizeMap, MEDAL_PRIZES, OTHER_PRIZES } from '../lib/prizes';
 import PrizeBadges from '../components/PrizeBadges';
 import { Link } from 'react-router-dom';
@@ -161,7 +161,7 @@ export default function StartPage() {
               const total = predictionWindow.matches.length;
               const predicted = userPredictions.length;
               const missing = total - predicted;
-              const stageLocked = todayTime >= new Date(predictionWindow.matches[0].match_date).getTime() - 30 * 60000;
+              const stageLocked = isStageLocked(stageName, allMatches);
 
               predictionResult = {
                 total,

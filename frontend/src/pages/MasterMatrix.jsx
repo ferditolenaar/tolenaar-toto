@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import pb from '../lib/pocketbase';
-import { isMatchStarted } from '../lib/matchUtils';
+import { isMatchStarted, isStageLocked } from '../lib/matchUtils';
 import '../MasterGrid.css';
 import '../Features.css';
 
@@ -149,11 +149,7 @@ export default function MasterMatrix() {
             return stageIndex >= simIndex;
         }
 
-        if (!allMatches || allMatches.length === 0) return true;
-        const stageMatches = allMatches.filter(m => m.stage === stageName);
-        if (stageMatches.length === 0) return true;
-        const earliest = stageMatches.reduce((e, c) => new Date(c.match_date) < new Date(e) ? c.match_date : e, stageMatches[0].match_date);
-        return new Date().getTime() < new Date(earliest).getTime() - (30 * 60 * 1000);
+        return !isStageLocked(stageName, allMatches);
     };
 
     const hasStageStarted = (stageName, allMatches) => {
