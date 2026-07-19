@@ -121,7 +121,7 @@ export default function MasterMatrix() {
                     if (isMounted) {
                         setData({ matches: allMatches, users: allUsers, predictions: allPreds, topFour: allTopFour });
                         setLoading(false);
-                        
+
                         try {
                             localStorage.setItem(CACHE_KEY, JSON.stringify({
                                 timestamp: Date.now(),
@@ -374,6 +374,28 @@ export default function MasterMatrix() {
         return map;
     }, [data.topFour]);
 
+    // Derive the official final top4 straight from the Finale (rank 1/2) and Troostfinale (rank 3/4)
+    // match results, as soon as each has been filled in - independent of the tournament_top4 collection.
+    const officialTopFour = useMemo(() => {
+        const result = { rank_1: null, rank_2: null, rank_3: null, rank_4: null };
+
+        const finale = data.matches.find(m => m.stage === 'Finale');
+        if (finale && isMatchStarted(finale.match_date) && ['1', '2'].includes(String(finale.match_toto))) {
+            result.rank_1 = finale.match_toto === '1' ? finale.home_team : finale.away_team;
+            result.rank_2 = finale.match_toto === '1' ? finale.away_team : finale.home_team;
+        }
+
+        const troostfinale = data.matches.find(m => m.stage === 'Troostfinale');
+        if (troostfinale && isMatchStarted(troostfinale.match_date) && ['1', '2'].includes(String(troostfinale.match_toto))) {
+            result.rank_3 = troostfinale.match_toto === '1' ? troostfinale.home_team : troostfinale.away_team;
+            result.rank_4 = troostfinale.match_toto === '1' ? troostfinale.away_team : troostfinale.home_team;
+        }
+
+        return result;
+    }, [data.matches]);
+
+    const isTopFourRankCorrect = (teamId, rank) => !!teamId && officialTopFour[rank] === teamId;
+
     const teamNameById = useMemo(() => {
         const map = {};
         data.matches.forEach(match => {
@@ -590,8 +612,10 @@ export default function MasterMatrix() {
                                             <div className="top4-compare-lines">
                                                 {['rank_1', 'rank_2', 'rank_3', 'rank_4'].map((rank) => {
                                                     const teamId = record?.[rank];
+                                                    const rankCorrect = isTopFourRankCorrect(teamId, rank);
+                                                    const className = rankCorrect ? 'is-correct' : (isEliminatedPick(teamId) ? 'top4-pick-eliminated' : '');
                                                     return (
-                                                        <div key={rank} className={isEliminatedPick(teamId) ? 'top4-pick-eliminated' : ''}>
+                                                        <div key={rank} className={className}>
                                                             {teamNameById[teamId] || '-'}
                                                         </div>
                                                     );
@@ -619,8 +643,10 @@ export default function MasterMatrix() {
                                             <div className="top4-compare-lines">
                                                 {['rank_1', 'rank_2', 'rank_3', 'rank_4'].map((rank) => {
                                                     const teamId = record?.[rank];
+                                                    const rankCorrect = isTopFourRankCorrect(teamId, rank);
+                                                    const className = rankCorrect ? 'is-correct' : (isEliminatedPick(teamId) ? 'top4-pick-eliminated' : '');
                                                     return (
-                                                        <div key={rank} className={isEliminatedPick(teamId) ? 'top4-pick-eliminated' : ''}>
+                                                        <div key={rank} className={className}>
                                                             {teamNameById[teamId] || '-'}
                                                         </div>
                                                     );
@@ -709,9 +735,10 @@ export default function MasterMatrix() {
                                             const tf = topFourByUser[user.id];
                                             const rawValue = tf ? tf[`rank_${rank}`] : null;
                                             const value = rawValue ? teamNameById[rawValue] || rawValue : '-';
-                                            const eliminated = isEliminatedPick(rawValue);
+                                            const rankCorrect = isTopFourRankCorrect(rawValue, `rank_${rank}`);
+                                            const className = rankCorrect ? 'is-correct' : (isEliminatedPick(rawValue) ? 'top4-pick-eliminated' : '');
                                             return (
-                                                <td key={`top4-${user.id}-${rank}`} className={`print-user-header print-top4-value ${eliminated ? 'top4-pick-eliminated' : ''}`}>
+                                                <td key={`top4-${user.id}-${rank}`} className={`print-user-header print-top4-value ${className}`}>
                                                     {value}
                                                 </td>
                                             );
