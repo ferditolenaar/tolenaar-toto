@@ -37,6 +37,7 @@ export default function StartPage() {
   const [showPredictionStatus, setShowPredictionStatus] = useState(false);
   const [isRoundActive, setIsRoundActive] = useState(false);
   const [activeRoundStage, setActiveRoundStage] = useState(null);
+  const [isTournamentFinished, setIsTournamentFinished] = useState(false);
 
   const prizeMap = useMemo(() => computePrizeMap(standings), [standings]);
 
@@ -152,6 +153,7 @@ export default function StartPage() {
           const isStageBeforeStart = (window) => todayTime < window.startTime;
 
           const activeStageWindow = stageWindows.find(w => !isStageFinished(w));
+          setIsTournamentFinished(stageWindows.length > 0 && !activeStageWindow);
 
           let predictionResult = {
             total: 0,
@@ -367,8 +369,8 @@ export default function StartPage() {
       <div className="feature-grid section-spacing">
         <div className="feature-card tournament-card">
           <div className="card-header">
-            <h3>📊 Top 5 Deelnemers</h3>
-            <p>Huidige live stand van de toto.</p>
+            <h3>{isTournamentFinished ? '🏆 Eindwinnaars' : '📊 Huidige Winnaars'}</h3>
+            <p>{isTournamentFinished ? 'De definitieve eindstand van de toto.' : 'Huidige live stand van de toto.'}</p>
           </div>
           <div className="card-content">
             <div className="leaderboard-mini">
