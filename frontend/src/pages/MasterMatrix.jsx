@@ -18,7 +18,7 @@ const DEBUG_LOCAL_TEST_START = import.meta.env.DEV && ['1', 'true'].includes(
 );
 
 export default function MasterMatrix() {
-    const [data, setData] = useState({ matches: [], users: [], predictions: [], topFour: [] });
+    const [data, setData] = useState({ matches: [], users: [], predictions: [], topFour: [], officialTopFour: null });
     const [searchTerm, setSearchTerm] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [hideCompleted, setHideCompleted] = useState(false);
@@ -80,12 +80,13 @@ export default function MasterMatrix() {
                     // Fast path: wait only for matches
                     const allMatches = await matchesPromise;
                     if (!isMounted) return;
-                    
+
                     setData({
                         matches: allMatches,
                         users: cachedStatic.users,
                         predictions: cachedStatic.predictions,
-                        topFour: cachedStatic.topFour
+                        topFour: cachedStatic.topFour,
+                        officialTopFour: cachedStatic.officialTopFour
                     });
                     setLoading(false);
 
@@ -94,15 +95,16 @@ export default function MasterMatrix() {
                         Promise.all([
                             pb.collection('users').getFullList({ sort: 'order' }),
                             pb.collection('predictions').getFullList({ requestKey: null }),
-                            pb.collection('top_four_predictions').getFullList({ requestKey: null }).catch(() => [])
-                        ]).then(([allUsers, allPreds, allTopFour]) => {
+                            pb.collection('top_four_predictions').getFullList({ requestKey: null }).catch(() => []),
+                            pb.collection('tournament_top4').getFirstListItem('', { requestKey: null }).catch(() => null)
+                        ]).then(([allUsers, allPreds, allTopFour, official]) => {
                             if (isMounted) {
-                                setData(prev => ({ ...prev, users: allUsers, predictions: allPreds, topFour: allTopFour }));
+                                setData(prev => ({ ...prev, users: allUsers, predictions: allPreds, topFour: allTopFour, officialTopFour: official }));
                             }
                             try {
                                 localStorage.setItem(CACHE_KEY, JSON.stringify({
                                     timestamp: Date.now(),
-                                    data: { users: allUsers, predictions: allPreds, topFour: allTopFour }
+                                    data: { users: allUsers, predictions: allPreds, topFour: allTopFour, officialTopFour: official }
                                 }));
                             } catch (error) {
                                 console.warn("Cache write error", error);
@@ -111,21 +113,22 @@ export default function MasterMatrix() {
                     }
                 } else {
                     // Slow path: fetch everything
-                    const [allMatches, allUsers, allPreds, allTopFour] = await Promise.all([
+                    const [allMatches, allUsers, allPreds, allTopFour, official] = await Promise.all([
                         matchesPromise,
                         pb.collection('users').getFullList({ sort: 'order' }),
                         pb.collection('predictions').getFullList({ requestKey: null }),
-                        pb.collection('top_four_predictions').getFullList({ requestKey: null }).catch(() => [])
+                        pb.collection('top_four_predictions').getFullList({ requestKey: null }).catch(() => []),
+                        pb.collection('tournament_top4').getFirstListItem('', { requestKey: null }).catch(() => null)
                     ]);
 
                     if (isMounted) {
-                        setData({ matches: allMatches, users: allUsers, predictions: allPreds, topFour: allTopFour });
+                        setData({ matches: allMatches, users: allUsers, predictions: allPreds, topFour: allTopFour, officialTopFour: official });
                         setLoading(false);
 
                         try {
                             localStorage.setItem(CACHE_KEY, JSON.stringify({
                                 timestamp: Date.now(),
-                                data: { users: allUsers, predictions: allPreds, topFour: allTopFour }
+                                data: { users: allUsers, predictions: allPreds, topFour: allTopFour, officialTopFour: official }
                             }));
                         } catch (error) { console.warn("Cache error", error); }
                     }
@@ -374,25 +377,18 @@ export default function MasterMatrix() {
         return map;
     }, [data.topFour]);
 
-    // Derive the official final top4 straight from the Finale (rank 1/2) and Troostfinale (rank 3/4)
-    // match results, as soon as each has been filled in - independent of the tournament_top4 collection.
+    // The official final top4 is a manually curated record (tournament_top4 collection, set via
+    // Admin Tools) rather than derived from the Finale/Troostfinale match_toto - the final can be
+    // decided by a draw/penalties, so match_toto isn't a reliable source for the actual placings.
     const officialTopFour = useMemo(() => {
-        const result = { rank_1: null, rank_2: null, rank_3: null, rank_4: null };
-
-        const finale = data.matches.find(m => m.stage === 'Finale');
-        if (finale && isMatchStarted(finale.match_date) && ['1', '2'].includes(String(finale.match_toto))) {
-            result.rank_1 = finale.match_toto === '1' ? finale.home_team : finale.away_team;
-            result.rank_2 = finale.match_toto === '1' ? finale.away_team : finale.home_team;
-        }
-
-        const troostfinale = data.matches.find(m => m.stage === 'Troostfinale');
-        if (troostfinale && isMatchStarted(troostfinale.match_date) && ['1', '2'].includes(String(troostfinale.match_toto))) {
-            result.rank_3 = troostfinale.match_toto === '1' ? troostfinale.home_team : troostfinale.away_team;
-            result.rank_4 = troostfinale.match_toto === '1' ? troostfinale.away_team : troostfinale.home_team;
-        }
-
-        return result;
-    }, [data.matches]);
+        const official = data.officialTopFour;
+        return {
+            rank_1: official?.rank_1 || null,
+            rank_2: official?.rank_2 || null,
+            rank_3: official?.rank_3 || null,
+            rank_4: official?.rank_4 || null
+        };
+    }, [data.officialTopFour]);
 
     const isTopFourRankCorrect = (teamId, rank) => !!teamId && officialTopFour[rank] === teamId;
 
