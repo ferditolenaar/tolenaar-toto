@@ -39,7 +39,28 @@ export default function StartPage() {
   const [activeRoundStage, setActiveRoundStage] = useState(null);
 
   const prizeMap = useMemo(() => computePrizeMap(standings), [standings]);
-  const top5 = standings.slice(0, 5);
+
+  // Show everyone holding a top-5 prize tier (gold/silver/bronze/medal) - a shared 5th
+  // place means this can be 6 people, not a hard slice(0, 5). The current "middle" and
+  // "second-last" prize winners are appended below that group, if they exist and aren't
+  // already shown above.
+  const miniList = useMemo(() => {
+    const ranked = standings.map((user, index) => ({ ...user, rank: index + 1 }));
+    const topWinners = ranked.filter(u => (prizeMap[u.id] || []).some(p => MEDAL_PRIZES.includes(p)));
+    const topIds = new Set(topWinners.map(u => u.id));
+
+    const extras = [];
+    const seenExtraIds = new Set();
+    ['middle', 'second-last'].forEach(prize => {
+      const user = ranked.find(u => (prizeMap[u.id] || []).includes(prize));
+      if (user && !topIds.has(user.id) && !seenExtraIds.has(user.id)) {
+        seenExtraIds.add(user.id);
+        extras.push(user);
+      }
+    });
+
+    return { topWinners, extras };
+  }, [standings, prizeMap]);
 
   const stageOrder = ['Groepsfase', 'Zestiende Finale', 'Achtste Finale', 'Kwartfinale', 'Halve Finale', 'Troostfinale', 'Finale'];
   const STAGE_GRACE_MS = 2 * 60 * 60 * 1000;
@@ -351,7 +372,7 @@ export default function StartPage() {
           </div>
           <div className="card-content">
             <div className="leaderboard-mini">
-              {top5.map((user, index) => {
+              {miniList.topWinners.map((user) => {
                 const prizes = prizeMap[user.id] || [];
                 const tierClass = prizes.includes('top-gold') ? 'tier-gold'
                   : prizes.includes('top-silver') ? 'tier-silver'
@@ -359,7 +380,7 @@ export default function StartPage() {
                   : '';
                 return (
                   <div key={user.id} className="mini-row">
-                    <span className={`mini-rank rank-${index + 1} ${tierClass}`}>{index + 1}</span>
+                    <span className={`mini-rank ${tierClass}`}>{user.rank}</span>
                     <span className="mini-medals">
                       <PrizeBadges prizeMap={prizeMap} userId={user.id} only={MEDAL_PRIZES} />
                     </span>
@@ -371,6 +392,16 @@ export default function StartPage() {
                   </div>
                 );
               })}
+              {miniList.extras.map((user, index) => (
+                <div key={user.id} className={`mini-row mini-row-extra${index === 0 ? ' mini-row-extra-first' : ''}`}>
+                  <span className="mini-rank">{user.rank}</span>
+                  <span className="mini-name">
+                    {`${user.firstName} ${user.lastName}`}
+                    <PrizeBadges prizeMap={prizeMap} userId={user.id} only={OTHER_PRIZES} />
+                  </span>
+                  <span className="mini-points">{user.points || 0}</span>
+                </div>
+              ))}
             </div>
           </div>
           <Link to="/stand" className="card-action-btn blue-btn">Bekijk Volledige Stand</Link>

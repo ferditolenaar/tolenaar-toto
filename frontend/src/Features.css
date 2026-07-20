@@ -457,6 +457,12 @@
     margin-left: 2px;
 }
 
+.mini-row-extra-first {
+    border-top: 1px dashed #d0d0d0;
+    margin-top: 4px;
+    padding-top: 16px;
+}
+
 .mini-name {
     flex-grow: 1;
     font-weight: 500;
